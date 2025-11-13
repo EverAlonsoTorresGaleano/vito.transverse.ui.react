@@ -1,0 +1,119 @@
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #ffffff;
+  border-top: 1px solid #e0e0e0;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: #666666;
+  font-size: 14px;
+}
+
+.items-per-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.items-per-page label {
+  font-size: 14px;
+  color: #666666;
+}
+
+.items-per-page-select {
+  padding: 6px 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background-color: #ffffff;
+  color: #333333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.items-per-page-select:hover {
+  border-color: #1e3a5f;
+}
+
+.items-per-page-select:focus {
+  outline: none;
+  border-color: #1e3a5f;
+  box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pagination-button {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background-color: #ffffff;
+  color: #333333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+  border-color: #1e3a5f;
+  color: #1e3a5f;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-button.active {
+  background-color: #1e3a5f;
+  color: #ffffff;
+  border-color: #1e3a5f;
+  font-weight: 500;
+}
+
+.pagination-button.active:hover {
+  background-color: #0f2442;
+  border-color: #0f2442;
+}
+
+.pagination-ellipsis {
+  padding: 0 8px;
+  color: #999999;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagination-info {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .pagination-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+

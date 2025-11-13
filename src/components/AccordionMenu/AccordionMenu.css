@@ -1,0 +1,464 @@
+.accordion-menu {
+  width: 100%;
+  background-color: #ffffff;
+}
+
+.menu-header {
+  padding: 20px;
+  background-color: #1e3a5f;
+  color: #ffffff;
+  border-bottom: 2px solid #0f2442;
+}
+
+.menu-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.menu-dashboard-link {
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #ffffff;
+}
+
+.dashboard-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  color: #555555;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 15px;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+}
+
+.dashboard-menu-link:hover {
+  background-color: #f5f7fa;
+  color: #1e3a5f;
+  border-left-color: #1e3a5f;
+  padding-left: 22px;
+}
+
+.dashboard-menu-link.active {
+  background-color: #1e3a5f;
+  color: #ffffff;
+  border-left-color: #0f2442;
+  font-weight: 600;
+}
+
+.dashboard-icon {
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.menu-groups {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-group {
+  border-bottom: 1px solid #e0e0e0;
+  position: relative;
+}
+
+.group-header-wrapper {
+  position: relative;
+}
+
+.group-header {
+  width: 100%;
+  padding: 18px 20px;
+  background-color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  font-size: 15px;
+  color: #333333;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+
+.group-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #1e3a5f;
+  transform: scaleY(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.group-header:hover {
+  background-color: #f5f7fa;
+  padding-left: 22px;
+  border-left-color: #1e3a5f;
+}
+
+.group-header:hover::before {
+  transform: scaleY(1);
+}
+
+.group-header.expanded {
+  background-color: #e8f0f8;
+  border-left-color: #1e3a5f;
+  box-shadow: inset 0 2px 4px rgba(30, 58, 95, 0.08);
+}
+
+.group-header.expanded::before {
+  transform: scaleY(1);
+}
+
+.group-header:active {
+  transform: scale(0.98);
+}
+
+.group-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: rgba(30, 58, 95, 0.1);
+  flex-shrink: 0;
+  color: #1e3a5f;
+  font-size: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group-icon-wrapper svg {
+  width: 16px;
+  height: 16px;
+}
+
+.group-header:hover .group-icon-wrapper {
+  background-color: rgba(30, 58, 95, 0.2);
+  transform: scale(1.08);
+  box-shadow: 0 2px 4px rgba(30, 58, 95, 0.15);
+}
+
+.group-header.expanded .group-icon-wrapper {
+  background-color: rgba(30, 58, 95, 0.25);
+  box-shadow: 0 2px 6px rgba(30, 58, 95, 0.2);
+}
+
+.group-title {
+  font-weight: 600;
+  color: #1e3a5f;
+  letter-spacing: 0.3px;
+  transition: color 0.2s ease;
+  flex: 1;
+}
+
+.group-header:hover .group-title {
+  color: #0f2442;
+}
+
+.group-arrow {
+  color: #1e3a5f;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.group-arrow svg {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group-header:hover .group-arrow svg {
+  transform: translateX(1px);
+}
+
+.group-arrow.expanded svg {
+  transform: rotate(90deg);
+}
+
+.group-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: #fafafa;
+  border-top: 1px solid #e0e0e0;
+}
+
+.menu-item {
+  border-bottom: 1px solid #e8e8e8;
+  position: relative;
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.menu-item-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 12px 20px 12px 40px;
+  color: #555555;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  position: relative;
+  z-index: 3;
+  min-height: 40px;
+}
+
+.menu-item-collapse-button {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e3a5f;
+  z-index: 0;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.menu-item-wrapper:hover .menu-item-collapse-button {
+  opacity: 0.8;
+}
+
+.menu-item-collapse-button:hover {
+  opacity: 1;
+  background-color: rgba(30, 58, 95, 0.1);
+  border-radius: 4px;
+}
+
+.menu-item-collapse-button svg {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.2s ease;
+}
+
+.menu-link:hover {
+  background-color: #e8e8e8;
+  color: #1e3a5f;
+  padding-left: 45px;
+}
+
+.menu-link:active {
+  background-color: #d8d8d8;
+}
+
+/* Active link styling */
+.menu-link.active {
+  background-color: #1e3a5f;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.menu-item-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+/* Popover/Tooltip Styles */
+.group-popover {
+  position: fixed;
+  z-index: 10001;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  width: 280px;
+  will-change: transform, opacity;
+  animation: popoverFadeIn 0.25s ease;
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.group-header-wrapper {
+  position: relative;
+}
+
+.popover-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  position: relative;
+  overflow: hidden;
+}
+
+.popover-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background-color: #1e3a5f;
+  color: #ffffff;
+  border-bottom: 1px solid #0f2442;
+}
+
+.popover-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+}
+
+.popover-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.popover-title {
+  font-weight: 600;
+  font-size: 15px;
+  flex: 1;
+}
+
+.popover-body {
+  padding: 16px;
+  color: #333333;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.popover-body p {
+  margin: 0;
+  color: #555555;
+}
+
+.popover-arrow {
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #1e3a5f;
+  z-index: 1;
+}
+
+/* Ensure popover appears above other elements */
+.accordion-menu {
+  overflow: visible;
+}
+
+.sidebar {
+  overflow: visible;
+}
+
+/* Menu Item Popover Styles */
+.menu-item-popover {
+  position: fixed;
+  z-index: 10002 !important;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  width: 280px;
+  will-change: transform, opacity;
+  animation: popoverFadeIn 0.25s ease;
+}
+
+/* Ensure menu item collapse button is behind popover when popover is visible */
+.menu-item-wrapper {
+  position: relative;
+}
+
+/* When popover is visible, collapse button should be behind it */
+.menu-item-wrapper.popover-visible .menu-item-collapse-button {
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* When popover is not visible, collapse button can be interactive */
+.menu-item-wrapper:not(.popover-visible) .menu-item-collapse-button {
+  z-index: 0;
+  pointer-events: auto;
+}
+
+/* Responsive popover positioning - handled in component logic */
+
+/* Loading, Error, and Empty States */
+.menu-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #666666;
+  font-size: 14px;
+  gap: 12px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(30, 58, 95, 0.1);
+  border-top-color: #1e3a5f;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.menu-error {
+  padding: 20px;
+  background-color: #ffebee;
+  border-left: 3px solid #d32f2f;
+  color: #d32f2f;
+  font-size: 14px;
+  margin: 10px;
+  border-radius: 4px;
+}
+
+.menu-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #999999;
+  font-size: 14px;
+  font-style: italic;
+}
+
+

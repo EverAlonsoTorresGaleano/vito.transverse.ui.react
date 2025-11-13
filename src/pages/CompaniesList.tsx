@@ -1,0 +1,266 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { CompanyDTO } from '../api/vito-transverse-identity-api';
+import { apiClient } from '../services/apiService';
+import Pagination from '../components/Pagination/Pagination';
+import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
+import './CompaniesList.css';
+
+const CompaniesList: React.FC = () => {
+  const [companies, setCompanies] = useState<CompanyDTO[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await apiClient.getApiCompaniesV1All();
+      setCompanies(data || []);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load companies';
+      setError(errorMessage);
+      console.error('Error fetching companies:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (companyId: number) => {
+    if (!window.confirm('Are you sure you want to delete this company?')) {
+      return;
+    }
+
+    try {
+      setDeletingId(companyId);
+      await apiClient.deleteApiCompaniesV1Delete(companyId);
+      // Refresh the list after deletion
+      await fetchCompanies();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete company';
+      alert(errorMessage);
+      console.error('Error deleting company:', err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleView = (companyId: number) => {
+    // TODO: Navigate to view page or show modal
+    console.log('View company:', companyId);
+    alert(`View company ${companyId} - Feature to be implemented`);
+  };
+
+  const handleEdit = (companyId: number) => {
+    // TODO: Navigate to edit page or show modal
+    console.log('Edit company:', companyId);
+    alert(`Edit company ${companyId} - Feature to be implemented`);
+  };
+
+  // Filter companies based on search term
+  const filteredCompanies = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return companies;
+    }
+    
+    const searchLower = searchTerm.toLowerCase().trim();
+    return companies.filter(company => {
+      const id = company.id?.toString() || '';
+      const name = company.nameTranslationKey?.toLowerCase() || '';
+      const email = company.email?.toLowerCase() || '';
+      const subdomain = company.subdomain?.toLowerCase() || '';
+      const status = company.isActive ? 'active' : 'inactive';
+      
+      return (
+        id.includes(searchLower) ||
+        name.includes(searchLower) ||
+        email.includes(searchLower) ||
+        subdomain.includes(searchLower) ||
+        status.includes(searchLower)
+      );
+    });
+  }, [companies, searchTerm]);
+
+  // Calculate pagination based on filtered results
+  const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
+  const paginatedCompanies = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredCompanies.slice(startIndex, endIndex);
+  }, [filteredCompanies, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when items per page or search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage, searchTerm]);
+
+  if (loading) {
+    return (
+      <div className="list-page">
+        <div className="page-header">
+          <h1>Companies</h1>
+        </div>
+        <div className="loading">Loading companies...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="list-page">
+        <div className="page-header">
+          <h1>Companies</h1>
+        </div>
+        <div className="error">{error}</div>
+        <button className="retry-button" onClick={fetchCompanies}>
+          <FaRedo /> Retry
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="list-page">
+      <div className="page-header">
+        <h1>Companies</h1>
+        <p className="page-subtitle">Manage your companies</p>
+      </div>
+      <div className="list-container">
+        <div className="list-card">
+          <div className="search-container">
+            <div className="search-controls">
+              <div className="search-wrapper">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Search companies by name, email, subdomain, ID, or status..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    className="search-clear-button"
+                    onClick={() => setSearchTerm('')}
+                    title="Clear search"
+                  >
+                    <FaTimes />
+                  </button>
+                )}
+              </div>
+              <button
+                className="new-company-button"
+                onClick={() => {
+                  // TODO: Navigate to new company page or show modal
+                  console.log('New Company clicked');
+                  alert('New Company - Feature to be implemented');
+                }}
+                title="Create new company"
+              >
+                <FaPlus /> New Company
+              </button>
+            </div>
+            {searchTerm && (
+              <div className="search-results-info">
+                Showing {filteredCompanies.length} of {companies.length} companies
+              </div>
+            )}
+          </div>
+          <div className="table-wrapper">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Subdomain</th>
+                  <th>Status</th>
+                  <th>Created Date</th>
+                  <th className="actions-column">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedCompanies.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="empty-state">
+                      {searchTerm ? 'No companies match your search criteria' : 'No companies found'}
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedCompanies.map(company => (
+                    <tr key={company.id}>
+                      <td>{company.id}</td>
+                      <td className="name-cell">
+                        <div className="cell-content">
+                          {company.nameTranslationKey || 'N/A'}
+                        </div>
+                      </td>
+                      <td>{company.email || 'N/A'}</td>
+                      <td>{company.subdomain || 'N/A'}</td>
+                      <td>
+                        <span className={`status-badge ${company.isActive ? 'active' : 'inactive'}`}>
+                          {company.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        {company.creationDate
+                          ? new Date(company.creationDate).toLocaleDateString()
+                          : 'N/A'}
+                      </td>
+                      <td className="actions-cell">
+                        <div className="action-buttons">
+                          <button
+                            className="action-button view-button"
+                            onClick={() => handleView(company.id!)}
+                            title="View"
+                          >
+                            <FaEye /> View
+                          </button>
+                          <button
+                            className="action-button edit-button"
+                            onClick={() => handleEdit(company.id!)}
+                            title="Edit"
+                          >
+                            <FaEdit /> Edit
+                          </button>
+                          <button
+                            className="action-button delete-button"
+                            onClick={() => handleDelete(company.id!)}
+                            disabled={deletingId === company.id}
+                            title="Delete"
+                          >
+                            <FaTrash /> {deletingId === company.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {filteredCompanies.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={filteredCompanies.length}
+              onItemsPerPageChange={setItemsPerPage}
+              itemName="companies"
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CompaniesList;
