@@ -1,11 +1,14 @@
 import React from 'react';
 import './Dashboard.css';
+import { useTranslation } from 'react-i18next';
+import { t } from 'i18next';
 
 const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <div className="dashboard-page">
       <div className="dashboard-header">
-        <h1>Dashboard</h1>
+        <h1>{t('DashboardPage_Title')}</h1>
       </div>
       <div className="dashboard-content">
         <div className="welcome-card">

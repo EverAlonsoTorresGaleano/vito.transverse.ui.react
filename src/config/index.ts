@@ -11,6 +11,7 @@
 
 interface ApiConfig {
   baseUrl: string;
+  defaultLanguage: string;
 }
 
 interface AuthConfig {
@@ -45,9 +46,15 @@ const getConfig = (): AppConfig => {
     throw new Error('REACT_APP_APPLICATION_SECRET environment variable is required');
   }
 
+  const defaultLanguage = process.env.REACT_APP_DEFAULT_LANGUAGE ;
+  if (!defaultLanguage) {
+    throw new Error('REACT_APP_DEFAULT_LANGUAGE environment variable is required');
+  }
+
   return {
     api: {
       baseUrl: apiBaseUrl,
+      defaultLanguage: defaultLanguage,
     },
     auth: {
       applicationId,

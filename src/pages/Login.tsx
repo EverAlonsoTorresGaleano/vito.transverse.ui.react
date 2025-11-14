@@ -1,13 +1,16 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { login } from '../services/authService';
 import { authService } from '../utils/auth';
 import { Client, ListItemDTO } from '../api/vito-transverse-identity-api';
 import config from '../config';
+import { translationService } from '../services/translationService';
 import './Login.css';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [formData, setFormData] = useState({
     userName: '',
     password: '',
@@ -23,6 +26,7 @@ const Login: React.FC = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [loadingLanguages, setLoadingLanguages] = useState(false);
   const [languagesError, setLanguagesError] = useState<string | null>(null);
+  const [changingLanguage, setChangingLanguage] = useState(false);
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -50,7 +54,7 @@ const Login: React.FC = () => {
         setLanguages(languagesList);
         // Set default language if available
         if (languagesList.length > 0 && !selectedLanguage) {
-          const defaultLang = languagesList.find(lang => lang.isEnabled !== false) || languagesList[0];
+          const defaultLang =  { id: config.api.defaultLanguage };
           setSelectedLanguage(defaultLang.id || '');
         }
       } catch (error) {
@@ -64,21 +68,44 @@ const Login: React.FC = () => {
 
     fetchCompanies();
     fetchLanguages();
+    
+    // Initialize translations for current language
+    const currentLang = translationService.getCurrentLanguage();
+    if (currentLang) {
+      translationService.initializeLanguage(currentLang);
+    }
   }, []);
+  
+  // Handle language change
+  useEffect(() => {
+    if (selectedLanguage && selectedLanguage !== i18n.language) {
+      const changeLanguage = async () => {
+        setChangingLanguage(true);
+        try {
+          await translationService.changeLanguage(selectedLanguage);
+        } catch (error) {
+          console.error('Error changing language:', error);
+        } finally {
+          setChangingLanguage(false);
+        }
+      };
+      changeLanguage();
+    }
+  }, [selectedLanguage, i18n.language]);
 
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.userName.trim()) {
-      newErrors.userName = 'User name is required';
+      newErrors.userName = t('validation.userNameRequired', 'User name is required');
     }
 
     if (!formData.password.trim()) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('validation.passwordRequired', 'Password is required');
     }
 
     if (!formData.company.trim()) {
-      newErrors.company = 'Company is required';
+      newErrors.company = t('validation.companyRequired', 'Company is required');
     }
 
     setErrors(newErrors);
@@ -133,10 +160,12 @@ const Login: React.FC = () => {
         });
         navigate('/dashboard');
       } else {
-        setSubmitError('Login failed: No token received');
+        setSubmitError(t('login.errorNoToken', 'Login failed: No token received'));
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred during login';
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : t('login.errorUnexpected', 'An unexpected error occurred during login');
       setSubmitError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -148,14 +177,14 @@ const Login: React.FC = () => {
       <div className="login-container">
         <div className="login-card">
           <div className="login-header">
-            <h1>Vito Transverse</h1>
-            <p className="login-subtitle">Identity Management System</p>
+            <h1>{t('LoginPage_Title')}</h1>
+            <p className="LoginPage_SubTitle">{t('LoginPage_SubTitle')}</p>
           </div>
           
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
               <label htmlFor="userName" className="form-label">
-                User Name
+                {t('LoginPage_UserName')}
               </label>
               <input
                 type="text"
@@ -164,7 +193,7 @@ const Login: React.FC = () => {
                 value={formData.userName}
                 onChange={handleChange}
                 className={`form-input ${errors.userName ? 'input-error' : ''}`}
-                placeholder="Enter your user name"
+                placeholder={t('LoginPage_UserNamePlaceholder')}
                 disabled={isLoading}
               />
               {errors.userName && (
@@ -174,7 +203,7 @@ const Login: React.FC = () => {
 
             <div className="form-group">
               <label htmlFor="password" className="form-label">
-                Password
+                {t('LoginPage_Password')}
               </label>
               <input
                 type="password"
@@ -183,7 +212,7 @@ const Login: React.FC = () => {
                 value={formData.password}
                 onChange={handleChange}
                 className={`form-input ${errors.password ? 'input-error' : ''}`}
-                placeholder="Enter your password"
+                placeholder={t('LoginPage_PasswordPlaceholder')}
                 disabled={isLoading}
               />
               {errors.password && (
@@ -193,11 +222,11 @@ const Login: React.FC = () => {
 
             <div className="form-group">
               <label htmlFor="company" className="form-label">
-                Company
+                {t('LoginPage_Company')}
               </label>
               {loadingCompanies ? (
                 <div className="form-input" style={{ color: '#666', fontStyle: 'italic' }}>
-                  Loading companies...
+                  {t('DropDown_LoadingData')}
                 </div>
               ) : companiesError ? (
                 <div className="form-input input-error" style={{ color: '#d32f2f' }}>
@@ -212,7 +241,7 @@ const Login: React.FC = () => {
                   className={`form-input ${errors.company ? 'input-error' : ''}`}
                   disabled={isLoading || loadingCompanies}
                 >
-                  <option value="">Select a company</option>
+                  <option value="">{t('DropDown_SelectCompany')}</option>
                   {companies
                     .filter(company => company.isEnabled !== false)
                     .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
@@ -237,18 +266,18 @@ const Login: React.FC = () => {
             <button
               type="submit"
               className="login-button"
-              disabled={isLoading}
+              disabled={isLoading || changingLanguage}
             >
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? t('LoginPage_LoginButtonProcessing') : t('LoginPage_LoginButton')}
             </button>
 
             <div className="language-group">
               <label htmlFor="language" className="language-label">
-                Language
+                {t('LoginPage_Language')}
               </label>
               {loadingLanguages ? (
                 <div className="language-dropdown" style={{ color: '#666', fontStyle: 'italic' }}>
-                  Loading...
+                  {t('DropDown_LoadingData')}
                 </div>
               ) : languagesError ? (
                 <div className="language-dropdown" style={{ color: '#d32f2f' }}>
@@ -261,15 +290,15 @@ const Login: React.FC = () => {
                   value={selectedLanguage}
                   onChange={(e) => setSelectedLanguage(e.target.value)}
                   className="language-dropdown"
-                  disabled={isLoading || loadingLanguages}
+                  disabled={isLoading || loadingLanguages || changingLanguage}
                 >
-                  <option value="">Select a language</option>
+                  <option value="">{t('DropDown_SelectLanguage')}</option>
                   {languages
                     .filter(lang => lang.isEnabled !== false)
                     .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
                     .map((language) => (
                       <option key={language.id || ''} value={language.id || ''}>
-                        {language.nameTranslationKey || language.id || 'Unnamed Language'}
+                        { t(language.nameTranslationKey || '') }
                       </option>
                     ))}
                 </select>

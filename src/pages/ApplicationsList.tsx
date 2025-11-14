@@ -4,8 +4,11 @@ import { apiClient } from '../services/apiService';
 import Pagination from '../components/Pagination/Pagination';
 import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
 import './ApplicationsList.css';
+import { useTranslation } from 'react-i18next';
+import { t } from 'i18next';  
 
 const ApplicationsList: React.FC = () => {
+  const { t } = useTranslation();
   const [applications, setApplications] = useState<ApplicationDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,9 +108,9 @@ const ApplicationsList: React.FC = () => {
     return (
       <div className="list-page">
         <div className="page-header">
-          <h1>Applications</h1>
+          <h1>{t('ApplicationsListPage_Title')}</h1>
         </div>
-        <div className="loading">Loading applications...</div>
+        <div className="loading">{t('Page_LoadingData')}</div>
       </div>
     );
   }
