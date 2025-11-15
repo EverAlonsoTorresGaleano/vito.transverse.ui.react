@@ -23,7 +23,21 @@ const Login: React.FC = () => {
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [companiesError, setCompaniesError] = useState<string | null>(null);
   const [languages, setLanguages] = useState<ListItemDTO[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+  // Initialize from localStorage to preserve previously selected language
+  const getInitialLanguage = (): string => {
+    if (typeof window !== 'undefined') {
+      const storedLanguage = localStorage.getItem('i18nextLng');
+      if (storedLanguage) {
+        return storedLanguage;
+      }
+    }
+    const currentLanguage = translationService.getCurrentLanguage();
+    if (currentLanguage) {
+      return currentLanguage;
+    }
+    return config.api.defaultLanguage;
+  };
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(() => getInitialLanguage());
   const [loadingLanguages, setLoadingLanguages] = useState(false);
   const [languagesError, setLanguagesError] = useState<string | null>(null);
   const [changingLanguage, setChangingLanguage] = useState(false);
@@ -52,10 +66,27 @@ const Login: React.FC = () => {
         const apiClient = new Client(config.api.baseUrl);
         const languagesList = await apiClient.getApiMasterV1CulturesActiveDropDown();
         setLanguages(languagesList);
-        // Set default language if available
-        if (languagesList.length > 0 && !selectedLanguage) {
-          const defaultLang =  { id: config.api.defaultLanguage };
-          setSelectedLanguage(defaultLang.id || '');
+        
+        // Initialize language from localStorage (preserved from previous session)
+        const storedLanguage = getInitialLanguage();
+        
+        if (languagesList.length > 0) {
+          // Check if stored language exists in the available languages list
+          const storedLangExists = languagesList.some(lang => lang.id === storedLanguage);
+          
+          if (storedLangExists) {
+            // Use the stored language
+            setSelectedLanguage(storedLanguage);
+            // Initialize translations for the stored language
+            await translationService.initializeLanguage(storedLanguage);
+          } else {
+            // Stored language not available, use default or first available
+            const defaultLang = languagesList.find(lang => lang.id === config.api.defaultLanguage) || languagesList[0];
+            if (defaultLang?.id) {
+              setSelectedLanguage(defaultLang.id);
+              await translationService.initializeLanguage(defaultLang.id);
+            }
+          }
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to load languages';
@@ -68,12 +99,6 @@ const Login: React.FC = () => {
 
     fetchCompanies();
     fetchLanguages();
-    
-    // Initialize translations for current language
-    const currentLang = translationService.getCurrentLanguage();
-    if (currentLang) {
-      translationService.initializeLanguage(currentLang);
-    }
   }, []);
   
   // Handle language change
