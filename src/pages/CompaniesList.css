@@ -259,7 +259,7 @@
 }
 
 .action-button {
-  padding: 6px 14px;
+  padding: 8px 14px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -267,12 +267,14 @@
   font-weight: 500;
   transition: all 0.2s ease;
   min-width: 70px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   white-space: nowrap;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .action-button svg {
@@ -390,6 +392,7 @@
     min-width: 60px;
     padding: 6px 10px;
     font-size: 12px;
+    height: 32px;
   }
 
   .data-table {
