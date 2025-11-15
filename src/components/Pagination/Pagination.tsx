@@ -1,5 +1,8 @@
 import React from 'react';
 import './Pagination.css';
+import { useTranslation } from 'react-i18next';
+import config from '../../config';
+import { translationService } from '../../services/translationService';
 
 interface PaginationProps {
   currentPage: number;
@@ -20,6 +23,7 @@ const Pagination: React.FC<PaginationProps> = ({
   onItemsPerPageChange,
   itemName = 'items'
 }) => {
+  const { t } = useTranslation();
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const maxVisible = 5;
@@ -58,15 +62,19 @@ const Pagination: React.FC<PaginationProps> = ({
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
+
+
   return (
     <div className="pagination-container">
       <div className="pagination-info">
         <span>
-          Showing {startItem} to {endItem} of {totalItems} {itemName}
+            {t('GridView_PaginationInfo',{start: startItem, end: endItem, total: totalItems, itemName:  t(itemName)})}  
+
+          {/* Showing {startItem} to {endItem} of {totalItems} {itemName} */}
         </span>
         {onItemsPerPageChange && (
-          <div className="items-per-page">
-            <label>Items per page:</label>
+          <div className="items-per-page">  
+            <label> {t('GridView_PaginationItemsPerPage')} </label>
             <select
               value={itemsPerPage}
               onChange={(e) => onItemsPerPageChange(Number(e.target.value))}

@@ -178,7 +178,7 @@ const Login: React.FC = () => {
         <div className="login-card">
           <div className="login-header">
             <h1>{t('LoginPage_Title')}</h1>
-            <p className="LoginPage_SubTitle">{t('LoginPage_SubTitle')}</p>
+            <p className="LoginPage_SubTitle">{t('LoginPage_Subtitle')}</p>
           </div>
           
           <form onSubmit={handleSubmit} className="login-form">
@@ -271,9 +271,11 @@ const Login: React.FC = () => {
               {isLoading ? t('LoginPage_LoginButtonProcessing') : t('LoginPage_LoginButton')}
             </button>
 
-            <div className="language-group">
+
+            <div className="language-group"></div>
+            <div className="form-group">
               <label htmlFor="language" className="language-label">
-                {t('LoginPage_Language')}
+                {t('DropdownLabel_Language')}
               </label>
               {loadingLanguages ? (
                 <div className="language-dropdown" style={{ color: '#666', fontStyle: 'italic' }}>

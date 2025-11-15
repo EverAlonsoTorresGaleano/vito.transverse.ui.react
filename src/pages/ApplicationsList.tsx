@@ -172,7 +172,7 @@ const ApplicationsList: React.FC = () => {
             </div>
             {searchTerm && (
               <div className="search-results-info">
-                Showing {filteredApplications.length} of {applications.length} applications
+                ShowingX {filteredApplications.length} of {applications.length} applications
               </div>
             )}
           </div>

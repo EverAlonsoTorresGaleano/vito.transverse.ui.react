@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { CompanyDTO } from '../api/vito-transverse-identity-api';
 import { apiClient } from '../services/apiService';
 import Pagination from '../components/Pagination/Pagination';
 import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
 import './CompaniesList.css';
-
+import { useTranslation } from 'react-i18next';
+import config from '../config';
+import { translationService } from '../services/translationService';
 const CompaniesList: React.FC = () => {
+  const { t } = useTranslation();
   const [companies, setCompanies] = useState<CompanyDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,12 +16,9 @@ const CompaniesList: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [currentCulture, setCurrentCulture] = useState<string>('');
 
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  const fetchCompanies = async () => {
+  const fetchCompanies = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -31,10 +31,28 @@ const CompaniesList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const initializeCulture = async () => {
+      try {
+        const detectedLanguage =
+          translationService.getCurrentLanguage() || config.api.defaultLanguage;
+        await translationService.initializeLanguage(detectedLanguage);
+        setCurrentCulture(detectedLanguage);
+      } catch (cultureError) {
+        console.error('Error initializing culture language:', cultureError);
+        setCurrentCulture(config.api.defaultLanguage);
+      } finally {
+        fetchCompanies();
+      }
+    };
+
+    initializeCulture();
+  }, [fetchCompanies]);
 
   const handleDelete = async (companyId: number) => {
-    if (!window.confirm('Are you sure you want to delete this company?')) {
+    if (!window.confirm(t('CompaniesListPage_DeleteConfirmation'))) {
       return;
     }
 
@@ -103,34 +121,34 @@ const CompaniesList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="list-page">
+      <div className="list-page" data-current-culture={currentCulture || undefined}>
         <div className="page-header">
-          <h1>Companies</h1>
+          <h1>{t('CompaniesListPage_Title')}</h1>
         </div>
-        <div className="loading">Loading companies...</div>
+        <div className="loading">{t('Page_LoadingData')}</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="list-page">
+      <div className="list-page" data-current-culture={currentCulture || undefined}>
         <div className="page-header">
-          <h1>Companies</h1>
+          <h1>{t('CompaniesListPage_Title')}</h1>
         </div>
         <div className="error">{error}</div>
         <button className="retry-button" onClick={fetchCompanies}>
-          <FaRedo /> Retry
+          <FaRedo /> {t('GridView_RetryButton')}
         </button>
       </div>
     );
   }
 
   return (
-    <div className="list-page">
+    <div className="list-page" data-current-culture={currentCulture || undefined}>
       <div className="page-header">
-        <h1>Companies</h1>
-        <p className="page-subtitle">Manage your companies</p>
+        <h1>{t('CompaniesListPage_Title')}</h1>
+        <p className="page-subtitle">{t('CompaniesListPage_Subtitle')}</p>
       </div>
       <div className="list-container">
         <div className="list-card">
@@ -141,7 +159,7 @@ const CompaniesList: React.FC = () => {
                 <input
                   type="text"
                   className="search-input"
-                  placeholder="Search companies by name, email, subdomain, ID, or status..."
+                  placeholder={t('GridView_SearchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -149,7 +167,7 @@ const CompaniesList: React.FC = () => {
                   <button
                     className="search-clear-button"
                     onClick={() => setSearchTerm('')}
-                    title="Clear search"
+                    title={t('GridView_ClearSearchButtonTooltip')}
                   >
                     <FaTimes />
                   </button>
@@ -162,14 +180,15 @@ const CompaniesList: React.FC = () => {
                   console.log('New Company clicked');
                   alert('New Company - Feature to be implemented');
                 }}
-                title="Create new company"
+                title={t('GridView_NewButtonTooltip')}
               >
-                <FaPlus /> New Company
+                <FaPlus /> {t('GridView_NewButton')}
               </button>
             </div>
             {searchTerm && (
-              <div className="search-results-info">
-                Showing {filteredCompanies.length} of {companies.length} companies
+              <div className="-results-infosearch">
+           
+     
               </div>
             )}
           </div>
@@ -177,20 +196,20 @@ const CompaniesList: React.FC = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Subdomain</th>
-                  <th>Status</th>
-                  <th>Created Date</th>
-                  <th className="actions-column">Actions</th>
+                  <th>{t('GridView_ColumnId')}</th>
+                  <th>{t('GridView_ColumnName')}</th>
+                  <th>{t('GridView_ColumnEmail')}</th>
+                  <th>{t('GridView_ColumnSubdomain')}</th>
+                  <th>{t('GridView_ColumnStatus')}</th>
+                  <th>{t('GridView_ColumnCreatedDate')}</th>
+                  <th className="actions-column">{t('GridView_Actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedCompanies.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="empty-state">
-                      {searchTerm ? 'No companies match your search criteria' : 'No companies found'}
+                      {searchTerm ? t('GridView_NoResultsFound') : t('GridView_NoDataFound')}
                     </td>
                   </tr>
                 ) : (
@@ -206,7 +225,7 @@ const CompaniesList: React.FC = () => {
                       <td>{company.subdomain || 'N/A'}</td>
                       <td>
                         <span className={`status-badge ${company.isActive ? 'active' : 'inactive'}`}>
-                          {company.isActive ? 'Active' : 'Inactive'}
+                          {company.isActive ? t('GridView_Active') : t('GridView_Inactive')}
                         </span>
                       </td>
                       <td>
@@ -219,24 +238,24 @@ const CompaniesList: React.FC = () => {
                           <button
                             className="action-button view-button"
                             onClick={() => handleView(company.id!)}
-                            title="View"
+                            title={t('GridView_ActionsViewButtonTooltip')}
                           >
-                            <FaEye /> View
+                            <FaEye /> {t('GridView_ActionsViewButton')}
                           </button>
                           <button
                             className="action-button edit-button"
                             onClick={() => handleEdit(company.id!)}
-                            title="Edit"
+                            title={t('GridView_ActionsEditButtonTooltip')}
                           >
-                            <FaEdit /> Edit
+                            <FaEdit /> {t('GridView_ActionsEditButton')}
                           </button>
                           <button
                             className="action-button delete-button"
                             onClick={() => handleDelete(company.id!)}
                             disabled={deletingId === company.id}
-                            title="Delete"
+                            title={t('GridView_ActionsDeleteButtonTooltip')}
                           >
-                            <FaTrash /> {deletingId === company.id ? 'Deleting...' : 'Delete'}
+                            <FaTrash /> {deletingId === company.id ? t('GridView_ActionsDeleting') : t('GridView_ActionsDeleteButton')}
                           </button>
                         </div>
                       </td>

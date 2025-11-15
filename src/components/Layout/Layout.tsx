@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import AccordionMenu from '../AccordionMenu/AccordionMenu';
 import UserAvatar from '../UserAvatar/UserAvatar';
+import LanguageSelector from '../LanguageSelector/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 import './Layout.css';
 
 interface LayoutProps {
@@ -9,7 +11,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
+  const { t } = useTranslation();
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
@@ -44,8 +46,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className={`layout-content-wrapper ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <header className="layout-header">
           <div className="header-content">
-            <h1 className="header-title">Vito Transverse</h1>
-            <UserAvatar />
+            <h1 className="header-title">{t('Application_Title')}</h1>
+            <div className="header-actions">
+              <LanguageSelector showSelectedLanguage={false} showLabel={false} setDefaultLanguage={false} />
+              <UserAvatar />
+            </div>
           </div>
         </header>
         <main className="main-content">

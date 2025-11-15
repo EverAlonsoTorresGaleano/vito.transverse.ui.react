@@ -4,6 +4,8 @@ import './AccordionMenu.css';
 import { MenuGroupDTO } from '../../api/vito-transverse-identity-api';
 import { apiClient } from '../../services/apiService';
 import { getIconComponent } from '../../utils/iconMapper';
+import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 
 interface MenuGroup {
   id: string;
@@ -35,7 +37,7 @@ const AccordionMenu: React.FC<AccordionMenuProps> = ({ isCollapsed = false }) =>
   const [menuGroups, setMenuGroups] = useState<MenuGroup[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const { t } = useTranslation();
 
   // Fetch menu data from API
   useEffect(() => {
@@ -118,13 +120,13 @@ const AccordionMenu: React.FC<AccordionMenuProps> = ({ isCollapsed = false }) =>
           }
         >
           <span className="dashboard-icon">📊</span>
-          {!isCollapsed && <span>Dashboard</span>}
+          {!isCollapsed && <span>{t('DashboardPage_Title')}</span>}
         </NavLink>
       </div>
       {loading && (
         <div className="menu-loading">
           <div className="loading-spinner"></div>
-          <span>Loading menu...</span>
+          <span>{t('Menu_LoadingMenu')}</span>
         </div>
       )}
       {error && (
@@ -134,7 +136,7 @@ const AccordionMenu: React.FC<AccordionMenuProps> = ({ isCollapsed = false }) =>
       )}
       {!loading && !error && menuGroups.length === 0 && (
         <div className="menu-empty">
-          <span>No menu items available</span>
+          <span>{t('AccordionMenu_NoMenuItemsAvailable')}</span>
         </div>
       )}
       <ul className="menu-groups">
@@ -176,7 +178,7 @@ const AccordionMenu: React.FC<AccordionMenuProps> = ({ isCollapsed = false }) =>
                   <span className="group-icon-wrapper">
                     {group.icon}
                   </span>
-                  {!isCollapsed && <span className="group-title">{group.title}</span>}
+                  {!isCollapsed && <span className="group-title">{t(group.title)}</span>}
                   <span className={`group-arrow ${isExpanded ? 'expanded' : ''}`}>
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M4.5 2.5L7.5 6L4.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -197,10 +199,10 @@ const AccordionMenu: React.FC<AccordionMenuProps> = ({ isCollapsed = false }) =>
                     <div className="popover-content">
                       <div className="popover-header">
                         <span className="popover-icon">{group.icon}</span>
-                        <span className="popover-title">{group.title}</span>
+                        <span className="popover-title">{t(group.title)}</span>
                       </div>
                       <div className="popover-body">
-                        <p>{group.description}</p>
+                        <p>{t( group.description)}</p>
                       </div>
                       <div 
                         className="popover-arrow"
@@ -251,7 +253,7 @@ const AccordionMenu: React.FC<AccordionMenuProps> = ({ isCollapsed = false }) =>
                             `menu-link ${isActive ? 'active' : ''}`
                           }
                         >
-                          <span className="menu-item-icon">{item.icon}</span> {item.label}
+                          <span className="menu-item-icon">{item.icon}</span> {t(item.label)}
                         </NavLink>
                         <button
                           className="menu-item-collapse-button"
@@ -279,10 +281,10 @@ const AccordionMenu: React.FC<AccordionMenuProps> = ({ isCollapsed = false }) =>
                             <div className="popover-content">
                               <div className="popover-header">
                                 <span className="popover-icon">{item.icon}</span>
-                                <span className="popover-title">{item.label}</span>
+                                <span className="popover-title">{t(item.label)}</span>
                               </div>
                               <div className="popover-body">
-                                <p>{item.description}</p>
+                                <p>{t(item.description)}</p>
                               </div>
                               <div 
                                 className="popover-arrow"
