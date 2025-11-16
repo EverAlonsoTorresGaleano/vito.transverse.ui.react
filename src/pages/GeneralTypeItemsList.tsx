@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
-import Pagination from '../components/Pagination/Pagination';
+import { GeneralTypeItemDTO } from '../api/vito-transverse-identity-api';
 import { apiClient } from '../services/apiService';
-import { UserDTO } from '../api/vito-transverse-identity-api';
+import Pagination from '../components/Pagination/Pagination';
+import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
 import './CompaniesList.css';
+import { useTranslation } from 'react-i18next';
 import config from '../config';
 import { translationService } from '../services/translationService';
 
-const UsersList: React.FC = () => {
+const GeneralTypeItemsList: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [items, setItems] = useState<GeneralTypeItemDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -21,20 +21,20 @@ const UsersList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [currentCulture, setCurrentCulture] = useState<string>('');
 
-  const fetchUsers = useCallback(async () => {
+  const fetchItems = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await apiClient.getApiUsersV1All();
-      setUsers(data || []);
+      const data = await apiClient.getApiMasterV1GeneralTypeItemsAll();
+      setItems(data || []);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : t('Label_LoadError');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load general type items';
       setError(errorMessage);
-      console.error('Error fetching users:', err);
+      console.error('Error fetching general type items:', err);
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     const initializeCulture = async () => {
@@ -47,66 +47,66 @@ const UsersList: React.FC = () => {
         console.error('Error initializing culture language:', cultureError);
         setCurrentCulture(config.api.defaultLanguage);
       } finally {
-        fetchUsers();
+        fetchItems();
       }
     };
 
     initializeCulture();
-  }, [fetchUsers]);
+  }, [fetchItems]);
 
-  const handleDelete = async (userId: number) => {
-    if (!window.confirm(t('UsersListPage_DeleteConfirmation'))) {
+  const handleDelete = async (itemId: number) => {
+    if (!window.confirm(t('GeneralTypeItemsListPage_DeleteConfirmation'))) {
       return;
     }
 
     try {
-      setDeletingId(userId);
-      await apiClient.deleteApiUsersV1Delete(userId);
-      await fetchUsers();
+      setDeletingId(itemId);
+      await apiClient.deleteApiMasterV1GeneralTypeItemsDelete(itemId);
+      await fetchItems();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : t('Label_DeleteError');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete general type item';
       alert(errorMessage);
-      console.error('Error deleting user:', err);
+      console.error('Error deleting general type item:', err);
     } finally {
       setDeletingId(null);
     }
   };
 
-  const handleView = (userId: number) => {
-    navigate(`/user/view/${userId}`);
+  const handleView = (itemId: number) => {
+    navigate(`/general-type-item/view/${itemId}`);
   };
 
-  const handleEdit = (userId: number) => {
-    navigate(`/user/edit/${userId}`);
+  const handleEdit = (itemId: number) => {
+    navigate(`/general-type-item/edit/${itemId}`);
   };
 
-  const filteredUsers = useMemo(() => {
+  const filteredItems = useMemo(() => {
     if (!searchTerm.trim()) {
-      return users;
+      return items;
     }
-    const q = searchTerm.toLowerCase().trim();
-    return users.filter(u => {
-      const id = u.id?.toString() || '';
-      const name = `${u.name || ''} ${u.lastName || ''}`.toLowerCase();
-      const email = u.email?.toLowerCase() || '';
-      const userName = u.userName?.toLowerCase() || '';
-      const status = u.isActive ? 'active' : 'inactive';
+    const searchLower = searchTerm.toLowerCase().trim();
+    return items.filter(i => {
+      const id = i.id?.toString() || '';
+      const name = i.nameTranslationKey?.toLowerCase() || '';
+      const groupName = i.itemGroupNameTranslationKey?.toLowerCase() || '';
+      const status = i.isEnabled ? 'active' : 'inactive';
+      const orderIdx = i.orderIndex?.toString() || '';
       return (
-        id.includes(q) ||
-        name.includes(q) ||
-        email.includes(q) ||
-        userName.includes(q) ||
-        status.includes(q)
+        id.includes(searchLower) ||
+        name.includes(searchLower) ||
+        groupName.includes(searchLower) ||
+        status.includes(searchLower) ||
+        orderIdx.includes(searchLower)
       );
     });
-  }, [users, searchTerm]);
+  }, [items, searchTerm]);
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = useMemo(() => {
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const paginatedItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return filteredUsers.slice(startIndex, endIndex);
-  }, [filteredUsers, currentPage, itemsPerPage]);
+    return filteredItems.slice(startIndex, endIndex);
+  }, [filteredItems, currentPage, itemsPerPage]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -114,9 +114,9 @@ const UsersList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="list-page">
+      <div className="list-page" data-current-culture={currentCulture || undefined}>
         <div className="page-header">
-          <h1>{t('UsersListPage_Title')}</h1>
+          <h1>{t('GeneralTypeItemsListPage_Title')}</h1>
         </div>
         <div className="loading">{t('Page_LoadingData')}</div>
       </div>
@@ -125,12 +125,12 @@ const UsersList: React.FC = () => {
 
   if (error) {
     return (
-      <div className="list-page">
+      <div className="list-page" data-current-culture={currentCulture || undefined}>
         <div className="page-header">
-          <h1>{t('UsersListPage_Title')}</h1>
+          <h1>{t('GeneralTypeItemsListPage_Title')}</h1>
         </div>
         <div className="error">{error}</div>
-        <button className="retry-button" onClick={fetchUsers}>
+        <button className="retry-button" onClick={fetchItems}>
           <FaRedo /> {t('GridView_RetryButton')}
         </button>
       </div>
@@ -138,10 +138,10 @@ const UsersList: React.FC = () => {
   }
 
   return (
-    <div className="list-page">
+    <div className="list-page" data-current-culture={currentCulture || undefined}>
       <div className="page-header">
-        <h1>{t('UsersListPage_Title')}</h1>
-        <p className="page-subtitle">{t('UsersListPage_Subtitle')}</p>
+        <h1>{t('GeneralTypeItemsListPage_Title')}</h1>
+        <p className="page-subtitle">{t('GeneralTypeItemsListPage_Subtitle')}</p>
       </div>
       <div className="list-container">
         <div className="list-card">
@@ -168,68 +168,70 @@ const UsersList: React.FC = () => {
               </div>
               <button
                 className="new-company-button"
-                onClick={() => navigate('/user/create')}
+                onClick={() => navigate('/general-type-item/create')}
                 title={t('Button_New_Tooltip')}
               >
                 <FaPlus /> {t('Button_New')}
               </button>
             </div>
+            {searchTerm && <div className="-results-infosearch"></div>}
           </div>
-
           <div className="table-wrapper">
             <table className="data-table">
               <thead>
                 <tr>
                   <th>{t('Label_Id')}</th>
-                  <th>{t('Label_Username')}</th>
                   <th>{t('Label_Name')}</th>
-                  <th>{t('Label_Email')}</th>
+                  <th>{t('Label_Group')}</th>
+                  <th>{t('Label_OrderIndex')}</th>
                   <th>{t('Label_Status')}</th>
                   <th className="actions-column">{t('Label_Actions')}</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedUsers.length === 0 ? (
+                {paginatedItems.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="empty-state">
                       {searchTerm ? t('GridView_NoResultsFound') : t('GridView_NoDataFound')}
                     </td>
                   </tr>
                 ) : (
-                  paginatedUsers.map(u => (
-                    <tr key={u.id}>
-                      <td>{u.id}</td>
-                      <td>{u.userName || 'N/A'}</td>
-                      <td>{`${u.name || ''} ${u.lastName || ''}`.trim() || 'N/A'}</td>
-                      <td>{u.email || 'N/A'}</td>
+                  paginatedItems.map(item => (
+                    <tr key={item.id}>
+                      <td>{item.id}</td>
+                      <td className="name-cell">
+                        <div className="cell-content">{item.nameTranslationKey || 'N/A'}</div>
+                      </td>
+                      <td>{item.itemGroupNameTranslationKey || item.listItemGroupFk || 'N/A'}</td>
+                      <td>{item.orderIndex ?? 'N/A'}</td>
                       <td>
-                        <span className={`status-badge ${u.isActive ? 'active' : 'inactive'}`}>
-                          {u.isActive ? t('Label_Active') : t('Label_Inactive')}
+                        <span className={`status-badge ${item.isEnabled ? 'active' : 'inactive'}`}>
+                          {item.isEnabled ? t('Label_Active') : t('Label_Inactive')}
                         </span>
                       </td>
                       <td className="actions-cell">
                         <div className="action-buttons">
                           <button
                             className="action-button view-button"
-                            onClick={() => handleView(u.id!)}
+                            onClick={() => handleView(item.id!)}
                             title={t('Button_View_Tooltip')}
                           >
                             <FaEye /> {t('Button_View')}
                           </button>
                           <button
                             className="action-button secondary-button"
-                            onClick={() => handleEdit(u.id!)}
+                            onClick={() => handleEdit(item.id!)}
                             title={t('Button_Edit_Tooltip')}
                           >
                             <FaEdit /> {t('Button_Edit')}
                           </button>
                           <button
                             className="action-button delete-button"
-                            onClick={() => handleDelete(u.id!)}
-                            disabled={deletingId === u.id}
+                            onClick={() => handleDelete(item.id!)}
+                            disabled={deletingId === item.id}
                             title={t('Button_Delete_Tooltip')}
                           >
-                            <FaTrash /> {deletingId === u.id ? t('Button_Deleting') : t('Button_Delete')}
+                            <FaTrash /> {deletingId === item.id ? t('Button_Deleting') : t('Button_Delete')}
                           </button>
                         </div>
                       </td>
@@ -239,16 +241,15 @@ const UsersList: React.FC = () => {
               </tbody>
             </table>
           </div>
-
-          {filteredUsers.length > 0 && (
+          {filteredItems.length > 0 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               itemsPerPage={itemsPerPage}
-              totalItems={filteredUsers.length}
+              totalItems={filteredItems.length}
               onItemsPerPageChange={setItemsPerPage}
-              itemName="users"
+              itemName="general type items"
             />
           )}
         </div>
@@ -257,5 +258,6 @@ const UsersList: React.FC = () => {
   );
 };
 
-export default UsersList;
+export default GeneralTypeItemsList;
+
 

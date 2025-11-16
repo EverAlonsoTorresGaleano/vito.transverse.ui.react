@@ -157,7 +157,7 @@ const CompaniesList: React.FC = () => {
                 <input
                   type="text"
                   className="search-input"
-                  placeholder={t('Label_SearchPlaceholder')}
+                  placeholder={t('GridView  _SearchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />

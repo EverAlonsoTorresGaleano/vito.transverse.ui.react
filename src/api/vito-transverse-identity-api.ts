@@ -15,7 +15,7 @@ export interface IClient {
 
     getApiHealthV0_9Ping2(): Promise<PingResponseDTO>;
 
-    getApiUsersV1All(companyId: number): Promise<UserDTO[]>;
+    getApiUsersV1All(): Promise<UserDTO[]>;
 
     postApiUsersV1(companyId: number | null | undefined, userInfo: UserDTO): Promise<UserDTO>;
 
@@ -145,15 +145,15 @@ export interface IClient {
 
     deleteApiCompaniesV1MembershipTypesDelete(membershipTypeId: number): Promise<void>;
 
-    getApiMasterV1SecuencesAll(): Promise<SecuencesDTO[]>;
+    getApiMasterV1SequencesAll(): Promise<SequencesDTO[]>;
 
-    postApiMasterV1Secuences(secuenceDTO: SecuencesDTO): Promise<SecuencesDTO>;
+    postApiMasterV1Sequences(secuenceDTO: SequencesDTO): Promise<SequencesDTO>;
 
-    putApiMasterV1Secuences(secuenceDTO: SecuencesDTO): Promise<SecuencesDTO>;
+    putApiMasterV1Sequences(secuenceDTO: SequencesDTO): Promise<SequencesDTO>;
 
-    getApiMasterV1Secuences(secuenceId: number): Promise<SecuencesDTO>;
+    getApiMasterV1Sequences(sequenceId: number): Promise<SequencesDTO>;
 
-    deleteApiMasterV1SecuencesDelete(secuenceId: number): Promise<void>;
+    deleteApiMasterV1SequencesDelete(sequenceId: number): Promise<void>;
 
     getApiMasterV1CulturesAll(): Promise<CultureDTO[]>;
 
@@ -423,12 +423,8 @@ export class Client implements IClient {
         return Promise.resolve<PingResponseDTO>(null as any);
     }
 
-    getApiUsersV1All(companyId: number): Promise<UserDTO[]> {
-        let url_ = this.baseUrl + "/api/Users/v1?";
-        if (companyId === undefined || companyId === null)
-            throw new globalThis.Error("The parameter 'companyId' must be defined and cannot be null.");
-        else
-            url_ += "companyId=" + encodeURIComponent("" + companyId) + "&";
+    getApiUsersV1All(): Promise<UserDTO[]> {
+        let url_ = this.baseUrl + "/api/Users/v1";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -3363,8 +3359,8 @@ export class Client implements IClient {
         return Promise.resolve<void>(null as any);
     }
 
-    getApiMasterV1SecuencesAll(): Promise<SecuencesDTO[]> {
-        let url_ = this.baseUrl + "/api/Master/v1/Secuences";
+    getApiMasterV1SequencesAll(): Promise<SequencesDTO[]> {
+        let url_ = this.baseUrl + "/api/Master/v1/Sequences";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -3375,17 +3371,17 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetApiMasterV1SecuencesAll(_response);
+            return this.processGetApiMasterV1SequencesAll(_response);
         });
     }
 
-    protected processGetApiMasterV1SecuencesAll(response: Response): Promise<SecuencesDTO[]> {
+    protected processGetApiMasterV1SequencesAll(response: Response): Promise<SequencesDTO[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SecuencesDTO[];
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SequencesDTO[];
             return result200;
             });
         } else if (status === 400) {
@@ -3403,11 +3399,11 @@ export class Client implements IClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<SecuencesDTO[]>(null as any);
+        return Promise.resolve<SequencesDTO[]>(null as any);
     }
 
-    postApiMasterV1Secuences(secuenceDTO: SecuencesDTO): Promise<SecuencesDTO> {
-        let url_ = this.baseUrl + "/api/Master/v1/Secuences";
+    postApiMasterV1Sequences(secuenceDTO: SequencesDTO): Promise<SequencesDTO> {
+        let url_ = this.baseUrl + "/api/Master/v1/Sequences";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(secuenceDTO);
@@ -3422,17 +3418,17 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPostApiMasterV1Secuences(_response);
+            return this.processPostApiMasterV1Sequences(_response);
         });
     }
 
-    protected processPostApiMasterV1Secuences(response: Response): Promise<SecuencesDTO> {
+    protected processPostApiMasterV1Sequences(response: Response): Promise<SequencesDTO> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SecuencesDTO;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SequencesDTO;
             return result200;
             });
         } else if (status === 400) {
@@ -3450,11 +3446,11 @@ export class Client implements IClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<SecuencesDTO>(null as any);
+        return Promise.resolve<SequencesDTO>(null as any);
     }
 
-    putApiMasterV1Secuences(secuenceDTO: SecuencesDTO): Promise<SecuencesDTO> {
-        let url_ = this.baseUrl + "/api/Master/v1/Secuences";
+    putApiMasterV1Sequences(secuenceDTO: SequencesDTO): Promise<SequencesDTO> {
+        let url_ = this.baseUrl + "/api/Master/v1/Sequences";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(secuenceDTO);
@@ -3469,17 +3465,17 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPutApiMasterV1Secuences(_response);
+            return this.processPutApiMasterV1Sequences(_response);
         });
     }
 
-    protected processPutApiMasterV1Secuences(response: Response): Promise<SecuencesDTO> {
+    protected processPutApiMasterV1Sequences(response: Response): Promise<SequencesDTO> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SecuencesDTO;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SequencesDTO;
             return result200;
             });
         } else if (status === 400) {
@@ -3497,14 +3493,14 @@ export class Client implements IClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<SecuencesDTO>(null as any);
+        return Promise.resolve<SequencesDTO>(null as any);
     }
 
-    getApiMasterV1Secuences(secuenceId: number): Promise<SecuencesDTO> {
-        let url_ = this.baseUrl + "/api/Master/v1/Secuences/{secuenceId}";
-        if (secuenceId === undefined || secuenceId === null)
-            throw new globalThis.Error("The parameter 'secuenceId' must be defined.");
-        url_ = url_.replace("{secuenceId}", encodeURIComponent("" + secuenceId));
+    getApiMasterV1Sequences(sequenceId: number): Promise<SequencesDTO> {
+        let url_ = this.baseUrl + "/api/Master/v1/Sequences/{sequenceId}";
+        if (sequenceId === undefined || sequenceId === null)
+            throw new globalThis.Error("The parameter 'sequenceId' must be defined.");
+        url_ = url_.replace("{sequenceId}", encodeURIComponent("" + sequenceId));
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -3515,17 +3511,17 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetApiMasterV1Secuences(_response);
+            return this.processGetApiMasterV1Sequences(_response);
         });
     }
 
-    protected processGetApiMasterV1Secuences(response: Response): Promise<SecuencesDTO> {
+    protected processGetApiMasterV1Sequences(response: Response): Promise<SequencesDTO> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SecuencesDTO;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SequencesDTO;
             return result200;
             });
         } else if (status === 400) {
@@ -3543,14 +3539,14 @@ export class Client implements IClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<SecuencesDTO>(null as any);
+        return Promise.resolve<SequencesDTO>(null as any);
     }
 
-    deleteApiMasterV1SecuencesDelete(secuenceId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Master/v1/Secuences/Delete/{secuenceId}";
-        if (secuenceId === undefined || secuenceId === null)
-            throw new globalThis.Error("The parameter 'secuenceId' must be defined.");
-        url_ = url_.replace("{secuenceId}", encodeURIComponent("" + secuenceId));
+    deleteApiMasterV1SequencesDelete(sequenceId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Master/v1/Sequences/Delete/{sequenceId}";
+        if (sequenceId === undefined || sequenceId === null)
+            throw new globalThis.Error("The parameter 'sequenceId' must be defined.");
+        url_ = url_.replace("{sequenceId}", encodeURIComponent("" + sequenceId));
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -3560,11 +3556,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiMasterV1SecuencesDelete(_response);
+            return this.processDeleteApiMasterV1SequencesDelete(_response);
         });
     }
 
-    protected processDeleteApiMasterV1SecuencesDelete(response: Response): Promise<void> {
+    protected processDeleteApiMasterV1SequencesDelete(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7233,7 +7229,7 @@ export interface MembershipTypeDTO {
     isActive?: boolean;
 }
 
-export interface SecuencesDTO {
+export interface SequencesDTO {
     id?: number;
     companyId?: number;
     companyNameTranslationKey?: string;

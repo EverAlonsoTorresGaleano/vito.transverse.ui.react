@@ -1,40 +1,40 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
-import Pagination from '../components/Pagination/Pagination';
+import { CountryDTO } from '../api/vito-transverse-identity-api';
 import { apiClient } from '../services/apiService';
-import { UserDTO } from '../api/vito-transverse-identity-api';
+import Pagination from '../components/Pagination/Pagination';
+import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
 import './CompaniesList.css';
+import { useTranslation } from 'react-i18next';
 import config from '../config';
 import { translationService } from '../services/translationService';
 
-const UsersList: React.FC = () => {
+const CountriesList: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [countries, setCountries] = useState<CountryDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [currentCulture, setCurrentCulture] = useState<string>('');
 
-  const fetchUsers = useCallback(async () => {
+  const fetchCountries = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await apiClient.getApiUsersV1All();
-      setUsers(data || []);
+      const data = await apiClient.getApiMasterV1CountriesAll();
+      setCountries(data || []);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : t('Label_LoadError');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load countries';
       setError(errorMessage);
-      console.error('Error fetching users:', err);
+      console.error('Error fetching countries:', err);
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     const initializeCulture = async () => {
@@ -47,66 +47,62 @@ const UsersList: React.FC = () => {
         console.error('Error initializing culture language:', cultureError);
         setCurrentCulture(config.api.defaultLanguage);
       } finally {
-        fetchUsers();
+        fetchCountries();
       }
     };
 
     initializeCulture();
-  }, [fetchUsers]);
+  }, [fetchCountries]);
 
-  const handleDelete = async (userId: number) => {
-    if (!window.confirm(t('UsersListPage_DeleteConfirmation'))) {
+  const handleDelete = async (countryId: string) => {
+    if (!window.confirm(t('CountriesListPage_DeleteConfirmation'))) {
       return;
     }
 
     try {
-      setDeletingId(userId);
-      await apiClient.deleteApiUsersV1Delete(userId);
-      await fetchUsers();
+      setDeletingId(countryId);
+      await apiClient.deleteApiMasterV1CountriesDelete(countryId);
+      await fetchCountries();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : t('Label_DeleteError');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete country';
       alert(errorMessage);
-      console.error('Error deleting user:', err);
+      console.error('Error deleting country:', err);
     } finally {
       setDeletingId(null);
     }
   };
 
-  const handleView = (userId: number) => {
-    navigate(`/user/view/${userId}`);
+  const handleView = (countryId: string) => {
+    navigate(`/country/view/${countryId}`);
   };
 
-  const handleEdit = (userId: number) => {
-    navigate(`/user/edit/${userId}`);
+  const handleEdit = (countryId: string) => {
+    navigate(`/country/edit/${countryId}`);
   };
 
-  const filteredUsers = useMemo(() => {
+  const filteredCountries = useMemo(() => {
     if (!searchTerm.trim()) {
-      return users;
+      return countries;
     }
-    const q = searchTerm.toLowerCase().trim();
-    return users.filter(u => {
-      const id = u.id?.toString() || '';
-      const name = `${u.name || ''} ${u.lastName || ''}`.toLowerCase();
-      const email = u.email?.toLowerCase() || '';
-      const userName = u.userName?.toLowerCase() || '';
-      const status = u.isActive ? 'active' : 'inactive';
+    const searchLower = searchTerm.toLowerCase().trim();
+    return countries.filter(country => {
+      const id = (country.id || '').toLowerCase();
+      const name = (country.nameTranslationKey || '').toLowerCase();
+      const utc = (country.utcHoursDifference ?? '').toString();
       return (
-        id.includes(q) ||
-        name.includes(q) ||
-        email.includes(q) ||
-        userName.includes(q) ||
-        status.includes(q)
+        id.includes(searchLower) ||
+        name.includes(searchLower) ||
+        utc.includes(searchLower)
       );
     });
-  }, [users, searchTerm]);
+  }, [countries, searchTerm]);
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = useMemo(() => {
+  const totalPages = Math.ceil(filteredCountries.length / itemsPerPage);
+  const paginatedCountries = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return filteredUsers.slice(startIndex, endIndex);
-  }, [filteredUsers, currentPage, itemsPerPage]);
+    return filteredCountries.slice(startIndex, endIndex);
+  }, [filteredCountries, currentPage, itemsPerPage]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -114,9 +110,9 @@ const UsersList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="list-page">
+      <div className="list-page" data-current-culture={currentCulture || undefined}>
         <div className="page-header">
-          <h1>{t('UsersListPage_Title')}</h1>
+          <h1>{t('CountriesListPage_Title')}</h1>
         </div>
         <div className="loading">{t('Page_LoadingData')}</div>
       </div>
@@ -125,12 +121,12 @@ const UsersList: React.FC = () => {
 
   if (error) {
     return (
-      <div className="list-page">
+      <div className="list-page" data-current-culture={currentCulture || undefined}>
         <div className="page-header">
-          <h1>{t('UsersListPage_Title')}</h1>
+          <h1>{t('CountriesListPage_Title')}</h1>
         </div>
         <div className="error">{error}</div>
-        <button className="retry-button" onClick={fetchUsers}>
+        <button className="retry-button" onClick={fetchCountries}>
           <FaRedo /> {t('GridView_RetryButton')}
         </button>
       </div>
@@ -138,10 +134,10 @@ const UsersList: React.FC = () => {
   }
 
   return (
-    <div className="list-page">
+    <div className="list-page" data-current-culture={currentCulture || undefined}>
       <div className="page-header">
-        <h1>{t('UsersListPage_Title')}</h1>
-        <p className="page-subtitle">{t('UsersListPage_Subtitle')}</p>
+        <h1>{t('CountriesListPage_Title')}</h1>
+        <p className="page-subtitle">{t('CountriesListPage_Subtitle')}</p>
       </div>
       <div className="list-container">
         <div className="list-card">
@@ -168,68 +164,68 @@ const UsersList: React.FC = () => {
               </div>
               <button
                 className="new-company-button"
-                onClick={() => navigate('/user/create')}
+                onClick={() => navigate('/country/create')}
                 title={t('Button_New_Tooltip')}
               >
                 <FaPlus /> {t('Button_New')}
               </button>
             </div>
+            {searchTerm && (
+              <div className="-results-infosearch">
+              </div>
+            )}
           </div>
-
           <div className="table-wrapper">
             <table className="data-table">
               <thead>
                 <tr>
                   <th>{t('Label_Id')}</th>
-                  <th>{t('Label_Username')}</th>
                   <th>{t('Label_Name')}</th>
-                  <th>{t('Label_Email')}</th>
-                  <th>{t('Label_Status')}</th>
+                  <th>{t('Label_UtcHoursDifference')}</th>
                   <th className="actions-column">{t('Label_Actions')}</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedUsers.length === 0 ? (
+                {paginatedCountries.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="empty-state">
+                    <td colSpan={4} className="empty-state">
                       {searchTerm ? t('GridView_NoResultsFound') : t('GridView_NoDataFound')}
                     </td>
                   </tr>
                 ) : (
-                  paginatedUsers.map(u => (
-                    <tr key={u.id}>
-                      <td>{u.id}</td>
-                      <td>{u.userName || 'N/A'}</td>
-                      <td>{`${u.name || ''} ${u.lastName || ''}`.trim() || 'N/A'}</td>
-                      <td>{u.email || 'N/A'}</td>
-                      <td>
-                        <span className={`status-badge ${u.isActive ? 'active' : 'inactive'}`}>
-                          {u.isActive ? t('Label_Active') : t('Label_Inactive')}
-                        </span>
+                  paginatedCountries.map(country => (
+                    <tr key={country.id}>
+                      <td>{country.id}</td>
+                      <td className="name-cell">
+                        <div className="cell-content">
+                          {country.nameTranslationKey || 'N/A'}
+                        </div>
                       </td>
+                      <td>{country.utcHoursDifference ?? 'N/A'}</td>
                       <td className="actions-cell">
                         <div className="action-buttons">
                           <button
                             className="action-button view-button"
-                            onClick={() => handleView(u.id!)}
+                            onClick={() => handleView(country.id!)}
                             title={t('Button_View_Tooltip')}
                           >
                             <FaEye /> {t('Button_View')}
                           </button>
                           <button
                             className="action-button secondary-button"
-                            onClick={() => handleEdit(u.id!)}
+                            onClick={() => handleEdit(country.id!)}
                             title={t('Button_Edit_Tooltip')}
                           >
                             <FaEdit /> {t('Button_Edit')}
                           </button>
                           <button
                             className="action-button delete-button"
-                            onClick={() => handleDelete(u.id!)}
-                            disabled={deletingId === u.id}
+                            onClick={() => handleDelete(country.id!)}
+                            disabled={deletingId === country.id}
                             title={t('Button_Delete_Tooltip')}
                           >
-                            <FaTrash /> {deletingId === u.id ? t('Button_Deleting') : t('Button_Delete')}
+                            <FaTrash /> {deletingId === country.id ?
+                              t('Button_Deleting') : t('Button_Delete')}
                           </button>
                         </div>
                       </td>
@@ -239,16 +235,15 @@ const UsersList: React.FC = () => {
               </tbody>
             </table>
           </div>
-
-          {filteredUsers.length > 0 && (
+          {filteredCountries.length > 0 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               itemsPerPage={itemsPerPage}
-              totalItems={filteredUsers.length}
+              totalItems={filteredCountries.length}
               onItemsPerPageChange={setItemsPerPage}
-              itemName="users"
+              itemName="countries"
             />
           )}
         </div>
@@ -257,5 +252,6 @@ const UsersList: React.FC = () => {
   );
 };
 
-export default UsersList;
+export default CountriesList;
+
 

@@ -1,95 +1,85 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useEffect, useState, FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { authService } from '../utils/auth';
+import { useTranslation } from 'react-i18next';
 import { apiClient } from '../services/apiService';
 import { UserDTO } from '../api/vito-transverse-identity-api';
 import './UserProfile.css';
 
-const EditUser: React.FC = () => {
+const EditUserAdmin: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const [user, setUser] = useState<UserDTO | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
+    userName: '',
     name: '',
     lastName: '',
     email: '',
-    userName: ''
+    isActive: true
   });
-
 
   useEffect(() => {
     const fetchUser = async () => {
       if (!id) {
-        setError('User information not available');
+        setError(t('Label_IdRequired') || 'User ID is required');
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
         const userId = parseInt(id, 10);
         if (isNaN(userId)) {
-          throw new Error('Invalid user ID');
+          throw new Error(t('Label_InvalidId') || 'Invalid user ID');
         }
         const userData = await apiClient.getApiUsersV1(userId);
         setUser(userData);
         setFormData({
+          userName: userData.userName || '',
           name: userData.name || '',
           lastName: userData.lastName || '',
           email: userData.email || '',
-          userName: userData.userName || ''
+          isActive: userData.isActive ?? true
         });
-        setLoading(false);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load user information';
+        const errorMessage = err instanceof Error ? err.message : (t('Label_LoadError') || 'Failed to load user');
         setError(errorMessage);
+      } finally {
         setLoading(false);
       }
     };
-
     fetchUser();
-  }, [id]);
+  }, [id, t]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user || !user.id) return;
-
+    if (!user) return;
     try {
       setSaving(true);
       setError(null);
-
-      const updatedUser: UserDTO = {
+      const updated: UserDTO = {
         ...user,
+        userName: formData.userName,
         name: formData.name,
         lastName: formData.lastName,
         email: formData.email,
-        userName: formData.userName
+        isActive: formData.isActive
       };
-
-      await apiClient.putApiUsersV1(updatedUser);
-
-      // Update stored user info if username changed
-      if (formData.userName !== user?.userName) {
-        authService.setUserInfo({
-          ...user,
-          userName: formData.userName
-        });
-      }
-
-      navigate(`/user/view/${id}`);
+      await apiClient.putApiUsersV1(updated);
+      navigate(`/user/view/${user.id}`);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update user information';
+      const errorMessage = err instanceof Error ? err.message : (t('Label_UpdateError') || 'Failed to update user');
       setError(errorMessage);
     } finally {
       setSaving(false);
@@ -97,22 +87,20 @@ const EditUser: React.FC = () => {
   };
 
   const handleCancel = () => {
-    if(user?.id) {
+    if (user?.id) {
       navigate(`/user/view/${user.id}`);
     } else {
       navigate('/users');
     }
-  
-    
   };
 
   if (loading) {
     return (
       <div className="user-profile-page">
         <div className="profile-header">
-          <h1>Edit Profile</h1>
+          <h1>{t('EditUserPage_Title') || 'Edit user'}</h1>
         </div>
-        <div className="loading">Loading user information...</div>
+        <div className="loading">{t('Page_LoadingData') || 'Loading...'}</div>
       </div>
     );
   }
@@ -121,7 +109,7 @@ const EditUser: React.FC = () => {
     return (
       <div className="user-profile-page">
         <div className="profile-header">
-          <h1>Edit Profile</h1>
+          <h1>{t('EditUserPage_Title') || 'Edit user'}</h1>
         </div>
         <div className="error">{error}</div>
       </div>
@@ -133,9 +121,9 @@ const EditUser: React.FC = () => {
       <div className="profile-header">
         <div className="header-actions">
           <button className="back-button" onClick={handleCancel}>
-            ← Cancel
+            ← {t('Button_Cancel') || 'Cancel'}
           </button>
-          <h1>Edit Profile</h1>
+          <h1>{t('EditUserPage_Title') || 'Edit user'}</h1>
           <div style={{ width: '80px' }}></div>
         </div>
       </div>
@@ -146,27 +134,23 @@ const EditUser: React.FC = () => {
             <img src={user.avatar} alt={user.name || 'User'} className="profile-avatar-large" />
           ) : (
             <div className="profile-avatar-large-initials">
-              {formData.name ? formData.name.charAt(0).toUpperCase() : 'U'}
+              {(formData.name || formData.userName || 'U').charAt(0).toUpperCase()}
             </div>
           )}
           <h2 className="profile-name">
-            {formData.name} {formData.lastName}
+            {`${formData.name} ${formData.lastName}`.trim()}
           </h2>
           <p className="profile-username">@{formData.userName}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="profile-form">
-          {error && (
-            <div className="form-error">
-              {error}
-            </div>
-          )}
+          {error && <div className="form-error">{error}</div>}
 
           <div className="form-section">
-            <h3 className="section-title">Personal Information</h3>
+            <h3 className="section-title">{t('EditUserPage_BasicInfo') || 'Basic information'}</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="userName">Username</label>
+                <label htmlFor="userName">{t('Label_Username') || 'Username'}</label>
                 <input
                   type="text"
                   id="userName"
@@ -178,7 +162,7 @@ const EditUser: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="name">First Name</label>
+                <label htmlFor="name">{t('Label_FirstName') || 'First name'}</label>
                 <input
                   type="text"
                   id="name"
@@ -190,7 +174,7 @@ const EditUser: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="lastName">Last Name</label>
+                <label htmlFor="lastName">{t('Label_LastName') || 'Last name'}</label>
                 <input
                   type="text"
                   id="lastName"
@@ -202,7 +186,7 @@ const EditUser: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">{t('Label_Email') || 'Email'}</label>
                 <input
                   type="email"
                   id="email"
@@ -213,15 +197,27 @@ const EditUser: React.FC = () => {
                   required
                 />
               </div>
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={formData.isActive}
+                    onChange={handleChange}
+                    style={{ width: 'auto' }}
+                  />
+                  <span>{t('Label_IsActive') || 'Is Active'}</span>
+                </label>
+              </div>
             </div>
           </div>
 
           <div className="form-actions">
             <button type="button" className="cancel-button" onClick={handleCancel} disabled={saving}>
-              Cancel
+              {t('Button_Cancel') || 'Cancel'}
             </button>
             <button type="submit" className="save-button" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? (t('Button_Saving') || 'Saving...') : (t('Button_Save') || 'Save')}
             </button>
           </div>
         </form>
@@ -230,7 +226,6 @@ const EditUser: React.FC = () => {
   );
 };
 
-export default EditUser;
-
+export default EditUserAdmin;
 
 
