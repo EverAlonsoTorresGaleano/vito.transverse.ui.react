@@ -68,7 +68,7 @@ const Pagination: React.FC<PaginationProps> = ({
     <div className="pagination-container">
       <div className="pagination-info">
         <span>
-            {t('GridView_PaginationInfo',{start: startItem, end: endItem, total: totalItems, itemName:  t(itemName)})}  
+            {t('GridView_PaginationInfo',{start: startItem, end: endItem, total: totalItems, itemName:  itemName})}  
 
           {/* Showing {startItem} to {endItem} of {totalItems} {itemName} */}
         </span>

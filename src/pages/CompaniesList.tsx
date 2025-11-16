@@ -157,7 +157,7 @@ const CompaniesList: React.FC = () => {
                 <input
                   type="text"
                   className="search-input"
-                  placeholder={t('GridView_SearchPlaceholder')}
+                  placeholder={t('Label_SearchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -165,7 +165,7 @@ const CompaniesList: React.FC = () => {
                   <button
                     className="search-clear-button"
                     onClick={() => setSearchTerm('')}
-                    title={t('GridView_ClearSearchButtonTooltip')}
+                    title={t('Button_ClearSearch_Tooltip')}
                   >
                     <FaTimes />
                   </button>
@@ -174,9 +174,9 @@ const CompaniesList: React.FC = () => {
               <button
                 className="new-company-button"
                 onClick={() => navigate('/company/create')}
-                title={t('GridView_NewButtonTooltip')}
+                title={t('Button_New_Tooltip')}
               >
-                <FaPlus /> {t('GridView_NewButton')}
+                <FaPlus /> {t('Button_New')}
               </button>
             </div>
             {searchTerm && (
@@ -190,13 +190,13 @@ const CompaniesList: React.FC = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>{t('GridView_ColumnId')}</th>
-                  <th>{t('GridView_ColumnName')}</th>
-                  <th>{t('GridView_ColumnEmail')}</th>
-                  <th>{t('GridView_ColumnSubdomain')}</th>
-                  <th>{t('GridView_ColumnStatus')}</th>
-                  <th>{t('GridView_ColumnCreatedDate')}</th>
-                  <th className="actions-column">{t('GridView_Actions')}</th>
+                  <th>{t('Label_Id')}</th>
+                  <th>{t('Label_Name')}</th>
+                  <th>{t('Label_Email')}</th>
+                  <th>{t('Label_Subdomain')}</th>
+                  <th>{t('Label_Status')}</th>
+                  <th>{t('Label_CreatedDate')}</th>
+                  <th className="actions-column">{t('Label_Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -219,7 +219,7 @@ const CompaniesList: React.FC = () => {
                       <td>{company.subdomain || 'N/A'}</td>
                       <td>
                         <span className={`status-badge ${company.isActive ? 'active' : 'inactive'}`}>
-                          {company.isActive ? t('GridView_Active') : t('GridView_Inactive')}
+                          {company.isActive ? t('Label_Active') : t('Label_Inactive')}
                         </span>
                       </td>
                       <td>
@@ -230,26 +230,27 @@ const CompaniesList: React.FC = () => {
                       <td className="actions-cell">
                         <div className="action-buttons">
                           <button
-                            className="action-button primary-button"
+                            className="action-button view-button"
                             onClick={() => handleView(company.id!)}
-                            title={t('GridView_ActionsViewButtonTooltip')}
+                            title={t('Button_View_Tooltip')}
                           >
-                            <FaEye /> {t('GridView_ActionsViewButton')}
+                            <FaEye /> {t('Button_View')}
                           </button>
                           <button
                             className="action-button secondary-button"
                             onClick={() => handleEdit(company.id!)}
-                            title={t('GridView_ActionsEditButtonTooltip')}
+                            title={t('Button_Edit_Tooltip')}
                           >
-                            <FaEdit /> {t('GridView_ActionsEditButton')}
+                            <FaEdit /> {t('Button_Edit')}
                           </button>
                           <button
                             className="action-button delete-button"
                             onClick={() => handleDelete(company.id!)}
                             disabled={deletingId === company.id}
-                            title={t('GridView_ActionsDeleteButtonTooltip')}
+                            title={t('Button_Delete_Tooltip')}
                           >
-                            <FaTrash /> {deletingId === company.id ? t('GridView_ActionsDeleting') : t('GridView_ActionsDeleteButton')}
+                            <FaTrash /> {deletingId === company.id ?
+                             t('Button_Deleting') : t('Button_Delete')}
                           </button>
                         </div>
                       </td>
