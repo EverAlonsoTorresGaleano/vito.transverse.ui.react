@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CompanyDTO } from '../api/vito-transverse-identity-api';
 import { apiClient } from '../services/apiService';
 import Pagination from '../components/Pagination/Pagination';
@@ -8,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import config from '../config';
 import { translationService } from '../services/translationService';
 const CompaniesList: React.FC = () => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [companies, setCompanies] = useState<CompanyDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -71,15 +73,11 @@ const CompaniesList: React.FC = () => {
   };
 
   const handleView = (companyId: number) => {
-    // TODO: Navigate to view page or show modal
-    console.log('View company:', companyId);
-    alert(`View company ${companyId} - Feature to be implemented`);
+    navigate(`/company/view/${companyId}`);
   };
 
   const handleEdit = (companyId: number) => {
-    // TODO: Navigate to edit page or show modal
-    console.log('Edit company:', companyId);
-    alert(`Edit company ${companyId} - Feature to be implemented`);
+    navigate(`/company/edit/${companyId}`);
   };
 
   // Filter companies based on search term
@@ -175,11 +173,7 @@ const CompaniesList: React.FC = () => {
               </div>
               <button
                 className="new-company-button"
-                onClick={() => {
-                  // TODO: Navigate to new company page or show modal
-                  console.log('New Company clicked');
-                  alert('New Company - Feature to be implemented');
-                }}
+                onClick={() => navigate('/company/create')}
                 title={t('GridView_NewButtonTooltip')}
               >
                 <FaPlus /> {t('GridView_NewButton')}

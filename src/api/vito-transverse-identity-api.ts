@@ -113,7 +113,7 @@ export interface IClient {
 
     getApiCompaniesV1All(): Promise<CompanyDTO[]>;
 
-    postApiCompaniesV1(companyId: number, userId: number, companyApplications: CompanyApplicationsDTO): Promise<CompanyDTO>;
+    postApiCompaniesV1(companyApplications: CompanyApplicationsDTO): Promise<CompanyDTO>;
 
     putApiCompaniesV1(companyInfo: CompanyDTO): Promise<CompanyDTO>;
 
@@ -2658,16 +2658,8 @@ export class Client implements IClient {
         return Promise.resolve<CompanyDTO[]>(null as any);
     }
 
-    postApiCompaniesV1(companyId: number, userId: number, companyApplications: CompanyApplicationsDTO): Promise<CompanyDTO> {
-        let url_ = this.baseUrl + "/api/Companies/v1?";
-        if (companyId === undefined || companyId === null)
-            throw new globalThis.Error("The parameter 'companyId' must be defined and cannot be null.");
-        else
-            url_ += "companyId=" + encodeURIComponent("" + companyId) + "&";
-        if (userId === undefined || userId === null)
-            throw new globalThis.Error("The parameter 'userId' must be defined and cannot be null.");
-        else
-            url_ += "userId=" + encodeURIComponent("" + userId) + "&";
+    postApiCompaniesV1(companyApplications: CompanyApplicationsDTO): Promise<CompanyDTO> {
+        let url_ = this.baseUrl + "/api/Companies/v1";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(companyApplications);

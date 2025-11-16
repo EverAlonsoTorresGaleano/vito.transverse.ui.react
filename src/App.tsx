@@ -4,6 +4,9 @@ import Layout from './components/Layout/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CompaniesList from './pages/CompaniesList';
+import ViewCompany from './pages/ViewCompany';
+import CreateCompany from './pages/CreateCompany';
+import EditCompany from './pages/EditCompany';
 import ViewUser from './pages/ViewUser';
 import EditUser from './pages/EditUser';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
@@ -31,6 +34,9 @@ const App: React.FC = () => {
                 <Routes>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/companies" element={<CompaniesList />} />
+                  <Route path="/company/view/:id" element={<ViewCompany />} />
+                  <Route path="/company/create" element={<CreateCompany />} />
+                  <Route path="/company/edit/:id" element={<EditCompany />} />
                   <Route path="/user/view" element={<ViewUser />} />
                   <Route path="/user/edit" element={<EditUser />} />
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
