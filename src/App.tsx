@@ -46,7 +46,7 @@ import ViewNotificationTemplate from './modules/masters/notification-templates/p
 import CreateNotificationTemplate from './modules/masters/notification-templates/pages/CreateNotificationTemplate';
 import EditNotificationTemplate from './modules/masters/notification-templates/pages/EditNotificationTemplate';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { authService } from './utils/auth';
+import { authService, initAutoLogout } from './utils/auth';
 import CreateUser from './modules/users/pages/CreateUser';
 import UsersList from './modules/users/pages/UsersList';
 import CompanyEntityAuditsList from './modules/masters/company-entity-audits/pages/CompanyEntityAuditsList';
@@ -55,6 +55,10 @@ import CreateCompanyEntityAudit from './modules/masters/company-entity-audits/pa
 import EditCompanyEntityAudit from './modules/masters/company-entity-audits/pages/EditCompanyEntityAudit';
 
 const App: React.FC = () => {
+  React.useEffect(() => {
+    initAutoLogout();
+  }, []);
+
   return (
     <Router>
       <Routes>
