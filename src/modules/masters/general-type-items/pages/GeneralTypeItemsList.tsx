@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GeneralTypeItemDTO } from '../../../../api/vito-transverse-identity-api';
 import { apiClient } from '../../../../services/apiService';
 import Pagination from '../../../../components/Pagination/Pagination';
-import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import '../../../../styles/CompaniesList.css';
 import { useTranslation } from 'react-i18next';
 import config from '../../../../config';
@@ -20,6 +20,19 @@ const GeneralTypeItemsList: React.FC = () => {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [currentCulture, setCurrentCulture] = useState<string>('');
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({
+    id: 100,
+    name: 200,
+    group: 200,
+    orderIndex: 120,
+    status: 120,
+    actions: 280
+  });
+  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(0);
 
   const fetchItems = useCallback(async () => {
     try {
@@ -81,25 +94,66 @@ const GeneralTypeItemsList: React.FC = () => {
   };
 
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return items;
+    let filtered = items;
+    
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = items.filter(i => {
+        const id = i.id?.toString() || '';
+        const name = i.nameTranslationKey?.toLowerCase() || '';
+        const groupName = i.itemGroupNameTranslationKey?.toLowerCase() || '';
+        const status = i.isEnabled ? 'active' : 'inactive';
+        const orderIdx = i.orderIndex?.toString() || '';
+        return (
+          id.includes(searchLower) ||
+          name.includes(searchLower) ||
+          groupName.includes(searchLower) ||
+          status.includes(searchLower) ||
+          orderIdx.includes(searchLower)
+        );
+      });
     }
-    const searchLower = searchTerm.toLowerCase().trim();
-    return items.filter(i => {
-      const id = i.id?.toString() || '';
-      const name = i.nameTranslationKey?.toLowerCase() || '';
-      const groupName = i.itemGroupNameTranslationKey?.toLowerCase() || '';
-      const status = i.isEnabled ? 'active' : 'inactive';
-      const orderIdx = i.orderIndex?.toString() || '';
-      return (
-        id.includes(searchLower) ||
-        name.includes(searchLower) ||
-        groupName.includes(searchLower) ||
-        status.includes(searchLower) ||
-        orderIdx.includes(searchLower)
-      );
-    });
-  }, [items, searchTerm]);
+    
+    // Apply sorting
+    if (sortColumn) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+        
+        switch (sortColumn) {
+          case 'id':
+            aValue = a.id ?? 0;
+            bValue = b.id ?? 0;
+            break;
+          case 'name':
+            aValue = (a.nameTranslationKey || '').toLowerCase();
+            bValue = (b.nameTranslationKey || '').toLowerCase();
+            break;
+          case 'group':
+            aValue = (a.itemGroupNameTranslationKey || '').toLowerCase();
+            bValue = (b.itemGroupNameTranslationKey || '').toLowerCase();
+            break;
+          case 'orderIndex':
+            aValue = a.orderIndex ?? 0;
+            bValue = b.orderIndex ?? 0;
+            break;
+          case 'status':
+            aValue = a.isEnabled ? 1 : 0;
+            bValue = b.isEnabled ? 1 : 0;
+            break;
+          default:
+            return 0;
+        }
+        
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  }, [items, searchTerm, sortColumn, sortDirection]);
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const paginatedItems = useMemo(() => {
@@ -108,9 +162,69 @@ const GeneralTypeItemsList: React.FC = () => {
     return filteredItems.slice(startIndex, endIndex);
   }, [filteredItems, currentPage, itemsPerPage]);
 
+  // Reset to page 1 when items per page, search term, or sort changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage, searchTerm]);
+  }, [itemsPerPage, searchTerm, sortColumn, sortDirection]);
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Toggle direction if clicking the same column
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new column and default to ascending
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortColumn !== column) {
+      return <FaSort className="sort-icon" />;
+    }
+    return sortDirection === 'asc' 
+      ? <FaSortUp className="sort-icon sort-active" />
+      : <FaSortDown className="sort-icon sort-active" />;
+  };
+
+  const handleResizeStart = (e: React.MouseEvent, column: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizingColumn(column);
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = columnWidths[column] || 100;
+  };
+
+  const handleResize = useCallback((e: MouseEvent) => {
+    if (!resizingColumn) return;
+    
+    const diff = e.clientX - resizeStartXRef.current;
+    const newWidth = Math.max(50, resizeStartWidthRef.current + diff);
+    setColumnWidths(prev => ({
+      ...prev,
+      [resizingColumn]: newWidth
+    }));
+  }, [resizingColumn]);
+
+  const handleResizeEnd = useCallback(() => {
+    setResizingColumn(null);
+  }, []);
+
+  useEffect(() => {
+    if (resizingColumn) {
+      document.addEventListener('mousemove', handleResize);
+      document.addEventListener('mouseup', handleResizeEnd);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      
+      return () => {
+        document.removeEventListener('mousemove', handleResize);
+        document.removeEventListener('mouseup', handleResizeEnd);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+    }
+  }, [resizingColumn, handleResize, handleResizeEnd]);
 
   if (loading) {
     return (
@@ -131,7 +245,7 @@ const GeneralTypeItemsList: React.FC = () => {
         </div>
         <div className="error">{error}</div>
         <button className="retry-button" onClick={fetchItems}>
-          <FaRedo /> {t('GridView_RetryButton')}
+          <FaRedo /> {t('Button_Retry')}
         </button>
       </div>
     );
@@ -180,12 +294,111 @@ const GeneralTypeItemsList: React.FC = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>{t('Label_Id')}</th>
-                  <th>{t('Label_Name')}</th>
-                  <th>{t('Label_Group')}</th>
-                  <th>{t('Label_OrderIndex')}</th>
-                  <th>{t('Label_Status')}</th>
-                  <th className="actions-column">{t('Label_Actions')}</th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('id');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Id')}
+                      {getSortIcon('id')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'id')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.name, minWidth: columnWidths.name, maxWidth: columnWidths.name }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('name');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Name')}
+                      {getSortIcon('name')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'name')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.group, minWidth: columnWidths.group, maxWidth: columnWidths.group }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('group');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Group')}
+                      {getSortIcon('group')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'group')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.orderIndex, minWidth: columnWidths.orderIndex, maxWidth: columnWidths.orderIndex }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('orderIndex');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_OrderIndex')}
+                      {getSortIcon('orderIndex')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'orderIndex')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.status, minWidth: columnWidths.status, maxWidth: columnWidths.status }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('status');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Status')}
+                      {getSortIcon('status')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'status')}
+                    />
+                  </th>
+                  <th 
+                    className="actions-column resizable" 
+                    style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}
+                  >
+                    {t('Label_Actions')}
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'actions')}
+                    />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -198,18 +411,18 @@ const GeneralTypeItemsList: React.FC = () => {
                 ) : (
                   paginatedItems.map(item => (
                     <tr key={item.id}>
-                      <td>{item.id}</td>
-                      <td className="name-cell">
-                        <div className="cell-content">{item.nameTranslationKey || 'N/A'}</div>
+                      <td style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}>{item.id}</td>
+                      <td className="name-cell" style={{ width: columnWidths.name, minWidth: columnWidths.name, maxWidth: columnWidths.name }}>
+                        <div className="cell-content">{t(item.nameTranslationKey || 'N/A')}</div>
                       </td>
-                      <td>{item.itemGroupNameTranslationKey || item.listItemGroupFk || 'N/A'}</td>
-                      <td>{item.orderIndex ?? 'N/A'}</td>
-                      <td>
+                      <td style={{ width: columnWidths.group, minWidth: columnWidths.group, maxWidth: columnWidths.group }}>{t( item.itemGroupNameTranslationKey || 'N/A') || item.listItemGroupFk || 'N/A'}</td>
+                      <td style={{ width: columnWidths.orderIndex, minWidth: columnWidths.orderIndex, maxWidth: columnWidths.orderIndex }}>{item.orderIndex ?? 'N/A'}</td>
+                      <td style={{ width: columnWidths.status, minWidth: columnWidths.status, maxWidth: columnWidths.status }}>
                         <span className={`status-badge ${item.isEnabled ? 'active' : 'inactive'}`}>
                           {item.isEnabled ? t('Label_Active') : t('Label_Inactive')}
                         </span>
                       </td>
-                      <td className="actions-cell">
+                      <td className="actions-cell" style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}>
                         <div className="action-buttons">
                           <button
                             className="action-button view-button"

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CountryDTO } from '../../../../api/vito-transverse-identity-api';
 import { apiClient } from '../../../../services/apiService';
 import Pagination from '../../../../components/Pagination/Pagination';
-import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import '../../../../styles/CompaniesList.css';
 import { useTranslation } from 'react-i18next';
 import config from '../../../../config';
@@ -20,6 +20,17 @@ const CountriesList: React.FC = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [currentCulture, setCurrentCulture] = useState<string>('');
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({
+    id: 150,
+    name: 250,
+    utcHoursDifference: 180,
+    actions: 280
+  });
+  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(0);
 
   const fetchCountries = useCallback(async () => {
     try {
@@ -81,21 +92,54 @@ const CountriesList: React.FC = () => {
   };
 
   const filteredCountries = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return countries;
+    let filtered = countries;
+    
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = countries.filter(country => {
+        const id = (country.id || '').toLowerCase();
+        const name = (country.nameTranslationKey || '').toLowerCase();
+        const utc = (country.utcHoursDifference ?? '').toString();
+        return (
+          id.includes(searchLower) ||
+          name.includes(searchLower) ||
+          utc.includes(searchLower)
+        );
+      });
     }
-    const searchLower = searchTerm.toLowerCase().trim();
-    return countries.filter(country => {
-      const id = (country.id || '').toLowerCase();
-      const name = (country.nameTranslationKey || '').toLowerCase();
-      const utc = (country.utcHoursDifference ?? '').toString();
-      return (
-        id.includes(searchLower) ||
-        name.includes(searchLower) ||
-        utc.includes(searchLower)
-      );
-    });
-  }, [countries, searchTerm]);
+    
+    // Apply sorting
+    if (sortColumn) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+        
+        switch (sortColumn) {
+          case 'id':
+            aValue = (a.id || '').toLowerCase();
+            bValue = (b.id || '').toLowerCase();
+            break;
+          case 'name':
+            aValue = (a.nameTranslationKey || '').toLowerCase();
+            bValue = (b.nameTranslationKey || '').toLowerCase();
+            break;
+          case 'utcHoursDifference':
+            aValue = a.utcHoursDifference ?? 0;
+            bValue = b.utcHoursDifference ?? 0;
+            break;
+          default:
+            return 0;
+        }
+        
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  }, [countries, searchTerm, sortColumn, sortDirection]);
 
   const totalPages = Math.ceil(filteredCountries.length / itemsPerPage);
   const paginatedCountries = useMemo(() => {
@@ -106,7 +150,66 @@ const CountriesList: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage, searchTerm]);
+  }, [itemsPerPage, searchTerm, sortColumn, sortDirection]);
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Toggle direction if clicking the same column
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new column and default to ascending
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortColumn !== column) {
+      return <FaSort className="sort-icon" />;
+    }
+    return sortDirection === 'asc' 
+      ? <FaSortUp className="sort-icon sort-active" />
+      : <FaSortDown className="sort-icon sort-active" />;
+  };
+
+  const handleResizeStart = (e: React.MouseEvent, column: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizingColumn(column);
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = columnWidths[column] || 100;
+  };
+
+  const handleResize = useCallback((e: MouseEvent) => {
+    if (!resizingColumn) return;
+    
+    const diff = e.clientX - resizeStartXRef.current;
+    const newWidth = Math.max(50, resizeStartWidthRef.current + diff);
+    setColumnWidths(prev => ({
+      ...prev,
+      [resizingColumn]: newWidth
+    }));
+  }, [resizingColumn]);
+
+  const handleResizeEnd = useCallback(() => {
+    setResizingColumn(null);
+  }, []);
+
+  useEffect(() => {
+    if (resizingColumn) {
+      document.addEventListener('mousemove', handleResize);
+      document.addEventListener('mouseup', handleResizeEnd);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      
+      return () => {
+        document.removeEventListener('mousemove', handleResize);
+        document.removeEventListener('mouseup', handleResizeEnd);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+    }
+  }, [resizingColumn, handleResize, handleResizeEnd]);
 
   if (loading) {
     return (
@@ -127,7 +230,7 @@ const CountriesList: React.FC = () => {
         </div>
         <div className="error">{error}</div>
         <button className="retry-button" onClick={fetchCountries}>
-          <FaRedo /> {t('GridView_RetryButton')}
+          <FaRedo /> {t('Button_Retry')}
         </button>
       </div>
     );
@@ -179,10 +282,73 @@ const CountriesList: React.FC = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>{t('Label_Id')}</th>
-                  <th>{t('Label_Name')}</th>
-                  <th>{t('Label_UtcHoursDifference')}</th>
-                  <th className="actions-column">{t('Label_Actions')}</th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('id');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Id')}
+                      {getSortIcon('id')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'id')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.name, minWidth: columnWidths.name, maxWidth: columnWidths.name }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('name');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Name')}
+                      {getSortIcon('name')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'name')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.utcHoursDifference, minWidth: columnWidths.utcHoursDifference, maxWidth: columnWidths.utcHoursDifference }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('utcHoursDifference');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_UtcHoursDifference')}
+                      {getSortIcon('utcHoursDifference')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'utcHoursDifference')}
+                    />
+                  </th>
+                  <th 
+                    className="actions-column resizable" 
+                    style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}
+                  >
+                    {t('Label_Actions')}
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'actions')}
+                    />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -195,14 +361,14 @@ const CountriesList: React.FC = () => {
                 ) : (
                   paginatedCountries.map(country => (
                     <tr key={country.id}>
-                      <td>{country.id}</td>
-                      <td className="name-cell">
+                      <td style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}>{country.id}</td>
+                      <td className="name-cell" style={{ width: columnWidths.name, minWidth: columnWidths.name, maxWidth: columnWidths.name }}>
                         <div className="cell-content">
                           {country.nameTranslationKey || 'N/A'}
                         </div>
                       </td>
-                      <td>{country.utcHoursDifference ?? 'N/A'}</td>
-                      <td className="actions-cell">
+                      <td style={{ width: columnWidths.utcHoursDifference, minWidth: columnWidths.utcHoursDifference, maxWidth: columnWidths.utcHoursDifference }}>{country.utcHoursDifference ?? 'N/A'}</td>
+                      <td className="actions-cell" style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}>
                         <div className="action-buttons">
                           <button
                             className="action-button view-button"

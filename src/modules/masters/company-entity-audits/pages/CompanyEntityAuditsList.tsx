@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CompanyEntityAuditDTO } from '../../../../api/vito-transverse-identity-api';
 import { apiClient } from '../../../../services/apiService';
 import Pagination from '../../../../components/Pagination/Pagination';
-import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import '../../../../styles/CompaniesList.css';
 import { useTranslation } from 'react-i18next';
 import config from '../../../../config';
@@ -20,6 +20,21 @@ const CompanyEntityAuditsList: React.FC = () => {
 	const [deletingId, setDeletingId] = useState<number | null>(null);
 	const [searchTerm, setSearchTerm] = useState<string>('');
 	const [currentCulture, setCurrentCulture] = useState<string>('');
+	const [sortColumn, setSortColumn] = useState<string | null>(null);
+	const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+	const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({
+		id: 100,
+		company: 200,
+		entitySchema: 150,
+		entityName: 180,
+		auditType: 150,
+		status: 120,
+		createdDate: 150,
+		actions: 280
+	});
+	const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+	const resizeStartXRef = useRef<number>(0);
+	const resizeStartWidthRef = useRef<number>(0);
 
 	const fetchAudits = useCallback(async () => {
 		try {
@@ -81,30 +96,78 @@ const CompanyEntityAuditsList: React.FC = () => {
 		navigate(`/company-entity-audit/edit/${auditId}`);
 	};
 
-	// Filter based on search term across key fields
+	// Filter based on search term across key fields and apply sorting
 	const filteredAudits = useMemo(() => {
-		if (!searchTerm.trim()) {
-			return audits;
+		let filtered = audits;
+
+		// Apply search filter
+		if (searchTerm.trim()) {
+			const q = searchTerm.toLowerCase().trim();
+			filtered = audits.filter(a => {
+				const id = a.id?.toString() || '';
+				const company = a.companyNameTranslationKey?.toLowerCase() || '';
+				const auditType = a.auditTypeNameTranslationKey?.toLowerCase() || '';
+				const entityName = a.entityName?.toLowerCase() || '';
+				const entitySchemaName = a.entitySchemaName?.toLowerCase() || '';
+				const status = a.isActive ? 'active' : 'inactive';
+				return (
+					id.includes(q) ||
+					company.includes(q) ||
+					auditType.includes(q) ||
+					entityName.includes(q) ||
+					entitySchemaName.includes(q) ||
+					status.includes(q)
+				);
+			});
 		}
 
-		const q = searchTerm.toLowerCase().trim();
-		return audits.filter(a => {
-			const id = a.id?.toString() || '';
-			const company = a.companyNameTranslationKey?.toLowerCase() || '';
-			const auditType = a.auditTypeNameTranslationKey?.toLowerCase() || '';
-			const entityName = a.entityName?.toLowerCase() || '';
-			const entitySchemaName = a.entitySchemaName?.toLowerCase() || '';
-			const status = a.isActive ? 'active' : 'inactive';
-			return (
-				id.includes(q) ||
-				company.includes(q) ||
-				auditType.includes(q) ||
-				entityName.includes(q) ||
-				entitySchemaName.includes(q) ||
-				status.includes(q)
-			);
-		});
-	}, [audits, searchTerm]);
+		// Apply sorting
+		if (sortColumn) {
+			filtered = [...filtered].sort((a, b) => {
+				let aValue: any;
+				let bValue: any;
+
+				switch (sortColumn) {
+					case 'id':
+						aValue = a.id ?? 0;
+						bValue = b.id ?? 0;
+						break;
+					case 'company':
+						aValue = (a.companyNameTranslationKey || '').toLowerCase();
+						bValue = (b.companyNameTranslationKey || '').toLowerCase();
+						break;
+					case 'entitySchema':
+						aValue = (a.entitySchemaName || '').toLowerCase();
+						bValue = (b.entitySchemaName || '').toLowerCase();
+						break;
+					case 'entityName':
+						aValue = (a.entityName || '').toLowerCase();
+						bValue = (b.entityName || '').toLowerCase();
+						break;
+					case 'auditType':
+						aValue = (a.auditTypeNameTranslationKey || '').toLowerCase();
+						bValue = (b.auditTypeNameTranslationKey || '').toLowerCase();
+						break;
+					case 'status':
+						aValue = a.isActive ? 1 : 0;
+						bValue = b.isActive ? 1 : 0;
+						break;
+					case 'createdDate':
+						aValue = a.creationDate ? new Date(a.creationDate).getTime() : 0;
+						bValue = b.creationDate ? new Date(b.creationDate).getTime() : 0;
+						break;
+					default:
+						return 0;
+				}
+
+				if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+				if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+				return 0;
+			});
+		}
+
+		return filtered;
+	}, [audits, searchTerm, sortColumn, sortDirection]);
 
 	// Pagination
 	const totalPages = Math.ceil(filteredAudits.length / itemsPerPage);
@@ -114,10 +177,69 @@ const CompanyEntityAuditsList: React.FC = () => {
 		return filteredAudits.slice(startIndex, endIndex);
 	}, [filteredAudits, currentPage, itemsPerPage]);
 
-	// Reset to page 1 when items per page or search term changes
+	// Reset to page 1 when items per page, search term, or sort changes
 	useEffect(() => {
 		setCurrentPage(1);
-	}, [itemsPerPage, searchTerm]);
+	}, [itemsPerPage, searchTerm, sortColumn, sortDirection]);
+
+	const handleSort = (column: string) => {
+		if (sortColumn === column) {
+			// Toggle direction if clicking the same column
+			setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+		} else {
+			// Set new column and default to ascending
+			setSortColumn(column);
+			setSortDirection('asc');
+		}
+	};
+
+	const getSortIcon = (column: string) => {
+		if (sortColumn !== column) {
+			return <FaSort className="sort-icon" />;
+		}
+		return sortDirection === 'asc'
+			? <FaSortUp className="sort-icon sort-active" />
+			: <FaSortDown className="sort-icon sort-active" />;
+	};
+
+	const handleResizeStart = (e: React.MouseEvent, column: string) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setResizingColumn(column);
+		resizeStartXRef.current = e.clientX;
+		resizeStartWidthRef.current = columnWidths[column] || 100;
+	};
+
+	const handleResize = useCallback((e: MouseEvent) => {
+		if (!resizingColumn) return;
+
+		const diff = e.clientX - resizeStartXRef.current;
+		const newWidth = Math.max(50, resizeStartWidthRef.current + diff);
+		setColumnWidths(prev => ({
+			...prev,
+			[resizingColumn]: newWidth
+		}));
+	}, [resizingColumn]);
+
+	const handleResizeEnd = useCallback(() => {
+		setResizingColumn(null);
+	}, []);
+
+	useEffect(() => {
+		if (resizingColumn) {
+			document.addEventListener('mousemove', handleResize);
+			document.addEventListener('mouseup', handleResizeEnd);
+			document.body.style.cursor = 'col-resize';
+			document.body.style.userSelect = 'none';
+
+			return () => {
+				document.removeEventListener('mousemove', handleResize);
+				document.removeEventListener('mouseup', handleResizeEnd);
+				document.body.style.cursor = '';
+				document.body.style.userSelect = '';
+			};
+		}
+	}, [resizingColumn, handleResize, handleResizeEnd]);
 
 	if (loading) {
 		return (
@@ -138,7 +260,7 @@ const CompanyEntityAuditsList: React.FC = () => {
 				</div>
 				<div className="error">{error}</div>
 				<button className="retry-button" onClick={fetchAudits}>
-					<FaRedo /> {t('GridView_RetryButton')}
+					<FaRedo /> {t('Button_Retry')}
 				</button>
 			</div>
 		);
@@ -186,14 +308,149 @@ const CompanyEntityAuditsList: React.FC = () => {
 						<table className="data-table">
 							<thead>
 								<tr>
-									<th>{t('Label_Id')}</th>
-									<th>{t('Label_Company')}</th>
-									<th>{t('Label_EntitySchema')}</th>
-									<th>{t('Label_EntityName')}</th>
-									<th>{t('Label_AuditType')}</th>
-									<th>{t('Label_Status')}</th>
-									<th>{t('Label_CreatedDate')}</th>
-									<th className="actions-column">{t('Label_Actions')}</th>
+									<th
+										className="sortable resizable"
+										style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('id');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_Id')}
+											{getSortIcon('id')}
+										</div>
+										<div
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'id')}
+										/>
+									</th>
+									<th
+										className="sortable resizable"
+										style={{ width: columnWidths.company, minWidth: columnWidths.company, maxWidth: columnWidths.company }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('company');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_Company')}
+											{getSortIcon('company')}
+										</div>
+										<div
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'company')}
+										/>
+									</th>
+									<th
+										className="sortable resizable"
+										style={{ width: columnWidths.entitySchema, minWidth: columnWidths.entitySchema, maxWidth: columnWidths.entitySchema }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('entitySchema');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_EntitySchema')}
+											{getSortIcon('entitySchema')}
+										</div>
+										<div
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'entitySchema')}
+										/>
+									</th>
+									<th
+										className="sortable resizable"
+										style={{ width: columnWidths.entityName, minWidth: columnWidths.entityName, maxWidth: columnWidths.entityName }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('entityName');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_EntityName')}
+											{getSortIcon('entityName')}
+										</div>
+										<div
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'entityName')}
+										/>
+									</th>
+									<th
+										className="sortable resizable"
+										style={{ width: columnWidths.auditType, minWidth: columnWidths.auditType, maxWidth: columnWidths.auditType }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('auditType');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_AuditType')}
+											{getSortIcon('auditType')}
+										</div>
+										<div
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'auditType')}
+										/>
+									</th>
+									<th
+										className="sortable resizable"
+										style={{ width: columnWidths.status, minWidth: columnWidths.status, maxWidth: columnWidths.status }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('status');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_Status')}
+											{getSortIcon('status')}
+										</div>
+										<div
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'status')}
+										/>
+									</th>
+									<th
+										className="sortable resizable"
+										style={{ width: columnWidths.createdDate, minWidth: columnWidths.createdDate, maxWidth: columnWidths.createdDate }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('createdDate');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_CreatedDate')}
+											{getSortIcon('createdDate')}
+										</div>
+										<div
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'createdDate')}
+										/>
+									</th>
+									<th
+										className="actions-column resizable"
+										style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}
+									>
+										{t('Label_Actions')}
+										<div
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'actions')}
+										/>
+									</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -206,26 +463,26 @@ const CompanyEntityAuditsList: React.FC = () => {
 								) : (
 									paginatedAudits.map(audit => (
 										<tr key={audit.id}>
-											<td>{audit.id}</td>
-											<td className="name-cell">
+											<td style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}>{audit.id}</td>
+											<td className="name-cell" style={{ width: columnWidths.company, minWidth: columnWidths.company, maxWidth: columnWidths.company }}>
 												<div className="cell-content">
 													{audit.companyNameTranslationKey || 'N/A'}
 												</div>
 											</td>
-											<td>{audit.entitySchemaName || 'N/A'}</td>
-											<td>{audit.entityName || 'N/A'}</td>
-											<td>{audit.auditTypeNameTranslationKey || 'N/A'}</td>
-											<td>
+											<td style={{ width: columnWidths.entitySchema, minWidth: columnWidths.entitySchema, maxWidth: columnWidths.entitySchema }}>{audit.entitySchemaName || 'N/A'}</td>
+											<td style={{ width: columnWidths.entityName, minWidth: columnWidths.entityName, maxWidth: columnWidths.entityName }}>{audit.entityName || 'N/A'}</td>
+											<td style={{ width: columnWidths.auditType, minWidth: columnWidths.auditType, maxWidth: columnWidths.auditType }}>{t(audit.auditTypeNameTranslationKey || 'N/A')}</td>
+											<td style={{ width: columnWidths.status, minWidth: columnWidths.status, maxWidth: columnWidths.status }}>
 												<span className={`status-badge ${audit.isActive ? 'active' : 'inactive'}`}>
 													{audit.isActive ? t('Label_Active') : t('Label_Inactive')}
 												</span>
 											</td>
-											<td>
+											<td style={{ width: columnWidths.createdDate, minWidth: columnWidths.createdDate, maxWidth: columnWidths.createdDate }}>
 												{audit.creationDate
 													? new Date(audit.creationDate).toLocaleDateString()
 													: 'N/A'}
 											</td>
-											<td className="actions-cell">
+											<td className="actions-cell" style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}>
 												<div className="action-buttons">
 													<button
 														className="action-button view-button"

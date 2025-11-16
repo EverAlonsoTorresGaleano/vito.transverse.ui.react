@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageDTO } from '../../../../api/vito-transverse-identity-api';
 import { apiClient } from '../../../../services/apiService';
 import Pagination from '../../../../components/Pagination/Pagination';
-import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import '../../../../styles/CompaniesList.css';
 import { useTranslation } from 'react-i18next';
 import config from '../../../../config';
@@ -20,6 +20,16 @@ const LanguagesList: React.FC = () => {
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [searchTerm, setSearchTerm] = useState<string>('');
 	const [currentCulture, setCurrentCulture] = useState<string>('');
+	const [sortColumn, setSortColumn] = useState<string | null>(null);
+	const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+	const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({
+		id: 150,
+		name: 300,
+		actions: 280
+	});
+	const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+	const resizeStartXRef = useRef<number>(0);
+	const resizeStartWidthRef = useRef<number>(0);
 
 	const fetchLanguages = useCallback(async () => {
 		try {
@@ -81,16 +91,45 @@ const LanguagesList: React.FC = () => {
 	};
 
 	const filteredLanguages = useMemo(() => {
-		if (!searchTerm.trim()) {
-			return languages;
+		let filtered = languages;
+		
+		// Apply search filter
+		if (searchTerm.trim()) {
+			const searchLower = searchTerm.toLowerCase().trim();
+			filtered = languages.filter(lang => {
+				const id = (lang.id || '').toLowerCase();
+				const name = (lang.nameTranslationKey || '').toLowerCase();
+				return id.includes(searchLower) || name.includes(searchLower);
+			});
 		}
-		const searchLower = searchTerm.toLowerCase().trim();
-		return languages.filter(lang => {
-			const id = (lang.id || '').toLowerCase();
-			const name = (lang.nameTranslationKey || '').toLowerCase();
-			return id.includes(searchLower) || name.includes(searchLower);
-		});
-	}, [languages, searchTerm]);
+		
+		// Apply sorting
+		if (sortColumn) {
+			filtered = [...filtered].sort((a, b) => {
+				let aValue: any;
+				let bValue: any;
+				
+				switch (sortColumn) {
+					case 'id':
+						aValue = (a.id || '').toLowerCase();
+						bValue = (b.id || '').toLowerCase();
+						break;
+					case 'name':
+						aValue = (a.nameTranslationKey || '').toLowerCase();
+						bValue = (b.nameTranslationKey || '').toLowerCase();
+						break;
+					default:
+						return 0;
+				}
+				
+				if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+				if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+				return 0;
+			});
+		}
+		
+		return filtered;
+	}, [languages, searchTerm, sortColumn, sortDirection]);
 
 	const totalPages = Math.ceil(filteredLanguages.length / itemsPerPage);
 	const paginatedLanguages = useMemo(() => {
@@ -101,7 +140,66 @@ const LanguagesList: React.FC = () => {
 
 	useEffect(() => {
 		setCurrentPage(1);
-	}, [itemsPerPage, searchTerm]);
+	}, [itemsPerPage, searchTerm, sortColumn, sortDirection]);
+
+	const handleSort = (column: string) => {
+		if (sortColumn === column) {
+			// Toggle direction if clicking the same column
+			setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+		} else {
+			// Set new column and default to ascending
+			setSortColumn(column);
+			setSortDirection('asc');
+		}
+	};
+
+	const getSortIcon = (column: string) => {
+		if (sortColumn !== column) {
+			return <FaSort className="sort-icon" />;
+		}
+		return sortDirection === 'asc' 
+			? <FaSortUp className="sort-icon sort-active" />
+			: <FaSortDown className="sort-icon sort-active" />;
+	};
+
+	const handleResizeStart = (e: React.MouseEvent, column: string) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setResizingColumn(column);
+		resizeStartXRef.current = e.clientX;
+		resizeStartWidthRef.current = columnWidths[column] || 100;
+	};
+
+	const handleResize = useCallback((e: MouseEvent) => {
+		if (!resizingColumn) return;
+		
+		const diff = e.clientX - resizeStartXRef.current;
+		const newWidth = Math.max(50, resizeStartWidthRef.current + diff);
+		setColumnWidths(prev => ({
+			...prev,
+			[resizingColumn]: newWidth
+		}));
+	}, [resizingColumn]);
+
+	const handleResizeEnd = useCallback(() => {
+		setResizingColumn(null);
+	}, []);
+
+	useEffect(() => {
+		if (resizingColumn) {
+			document.addEventListener('mousemove', handleResize);
+			document.addEventListener('mouseup', handleResizeEnd);
+			document.body.style.cursor = 'col-resize';
+			document.body.style.userSelect = 'none';
+			
+			return () => {
+				document.removeEventListener('mousemove', handleResize);
+				document.removeEventListener('mouseup', handleResizeEnd);
+				document.body.style.cursor = '';
+				document.body.style.userSelect = '';
+			};
+		}
+	}, [resizingColumn, handleResize, handleResizeEnd]);
 
 	if (loading) {
 		return (
@@ -122,7 +220,7 @@ const LanguagesList: React.FC = () => {
 				</div>
 				<div className="error">{error}</div>
 				<button className="retry-button" onClick={fetchLanguages}>
-					<FaRedo /> {t('GridView_RetryButton')}
+					<FaRedo /> {t('Button_Retry')}
 				</button>
 			</div>
 		);
@@ -174,9 +272,54 @@ const LanguagesList: React.FC = () => {
 						<table className="data-table">
 							<thead>
 								<tr>
-									<th>{t('Label_Id')}</th>
-									<th>{t('Label_Name')}</th>
-									<th className="actions-column">{t('Label_Actions')}</th>
+									<th 
+										className="sortable resizable" 
+										style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('id');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_Id')}
+											{getSortIcon('id')}
+										</div>
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'id')}
+										/>
+									</th>
+									<th 
+										className="sortable resizable" 
+										style={{ width: columnWidths.name, minWidth: columnWidths.name, maxWidth: columnWidths.name }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('name');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_Name')}
+											{getSortIcon('name')}
+										</div>
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'name')}
+										/>
+									</th>
+									<th 
+										className="actions-column resizable" 
+										style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}
+									>
+										{t('Label_Actions')}
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'actions')}
+										/>
+									</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -189,13 +332,13 @@ const LanguagesList: React.FC = () => {
 								) : (
 									paginatedLanguages.map(lang => (
 										<tr key={lang.id}>
-											<td>{lang.id}</td>
-											<td className="name-cell">
+											<td style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}>{lang.id}</td>
+											<td className="name-cell" style={{ width: columnWidths.name, minWidth: columnWidths.name, maxWidth: columnWidths.name }}>
 												<div className="cell-content">
-													{lang.nameTranslationKey || 'N/A'}
+													{t(lang.nameTranslationKey || 'N/A')}
 												</div>
 											</td>
-											<td className="actions-cell">
+											<td className="actions-cell" style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}>
 												<div className="action-buttons">
 													<button
 														className="action-button view-button"

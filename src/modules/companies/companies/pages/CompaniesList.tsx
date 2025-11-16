@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CompanyDTO } from '../../../../api/vito-transverse-identity-api';
 import { apiClient } from '../../../../services/apiService';
 import Pagination from '../../../../components/Pagination/Pagination';
-import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import '../../../../styles/CompaniesList.css';
 import { useTranslation } from 'react-i18next';
 import config from '../../../../config';
@@ -19,6 +19,20 @@ const CompaniesList: React.FC = () => {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [currentCulture, setCurrentCulture] = useState<string>('');
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({
+    id: 100,
+    name: 200,
+    email: 200,
+    subdomain: 150,
+    status: 120,
+    createdDate: 150,
+    actions: 280
+  });
+  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+  const resizeStartXRef = useRef<number>(0);
+  const resizeStartWidthRef = useRef<number>(0);
 
   const fetchCompanies = useCallback(async () => {
     try {
@@ -82,27 +96,71 @@ const CompaniesList: React.FC = () => {
 
   // Filter companies based on search term
   const filteredCompanies = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return companies;
+    let filtered = companies;
+    
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = companies.filter(company => {
+        const id = company.id?.toString() || '';
+        const name = company.nameTranslationKey?.toLowerCase() || '';
+        const email = company.email?.toLowerCase() || '';
+        const subdomain = company.subdomain?.toLowerCase() || '';
+        const status = company.isActive ? 'active' : 'inactive';
+        
+        return (
+          id.includes(searchLower) ||
+          name.includes(searchLower) ||
+          email.includes(searchLower) ||
+          subdomain.includes(searchLower) ||
+          status.includes(searchLower)
+        );
+      });
     }
     
-    const searchLower = searchTerm.toLowerCase().trim();
-    return companies.filter(company => {
-      const id = company.id?.toString() || '';
-      const name = company.nameTranslationKey?.toLowerCase() || '';
-      const email = company.email?.toLowerCase() || '';
-      const subdomain = company.subdomain?.toLowerCase() || '';
-      const status = company.isActive ? 'active' : 'inactive';
-      
-      return (
-        id.includes(searchLower) ||
-        name.includes(searchLower) ||
-        email.includes(searchLower) ||
-        subdomain.includes(searchLower) ||
-        status.includes(searchLower)
-      );
-    });
-  }, [companies, searchTerm]);
+    // Apply sorting
+    if (sortColumn) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+        
+        switch (sortColumn) {
+          case 'id':
+            aValue = a.id ?? 0;
+            bValue = b.id ?? 0;
+            break;
+          case 'name':
+            aValue = (a.nameTranslationKey || '').toLowerCase();
+            bValue = (b.nameTranslationKey || '').toLowerCase();
+            break;
+          case 'email':
+            aValue = (a.email || '').toLowerCase();
+            bValue = (b.email || '').toLowerCase();
+            break;
+          case 'subdomain':
+            aValue = (a.subdomain || '').toLowerCase();
+            bValue = (b.subdomain || '').toLowerCase();
+            break;
+          case 'status':
+            aValue = a.isActive ? 1 : 0;
+            bValue = b.isActive ? 1 : 0;
+            break;
+          case 'createdDate':
+            aValue = a.creationDate ? new Date(a.creationDate).getTime() : 0;
+            bValue = b.creationDate ? new Date(b.creationDate).getTime() : 0;
+            break;
+          default:
+            return 0;
+        }
+        
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  }, [companies, searchTerm, sortColumn, sortDirection]);
 
   // Calculate pagination based on filtered results
   const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
@@ -112,10 +170,69 @@ const CompaniesList: React.FC = () => {
     return filteredCompanies.slice(startIndex, endIndex);
   }, [filteredCompanies, currentPage, itemsPerPage]);
 
-  // Reset to page 1 when items per page or search term changes
+  // Reset to page 1 when items per page, search term, or sort changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage, searchTerm]);
+  }, [itemsPerPage, searchTerm, sortColumn, sortDirection]);
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Toggle direction if clicking the same column
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new column and default to ascending
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortColumn !== column) {
+      return <FaSort className="sort-icon" />;
+    }
+    return sortDirection === 'asc' 
+      ? <FaSortUp className="sort-icon sort-active" />
+      : <FaSortDown className="sort-icon sort-active" />;
+  };
+
+  const handleResizeStart = (e: React.MouseEvent, column: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizingColumn(column);
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = columnWidths[column] || 100;
+  };
+
+  const handleResize = useCallback((e: MouseEvent) => {
+    if (!resizingColumn) return;
+    
+    const diff = e.clientX - resizeStartXRef.current;
+    const newWidth = Math.max(50, resizeStartWidthRef.current + diff);
+    setColumnWidths(prev => ({
+      ...prev,
+      [resizingColumn]: newWidth
+    }));
+  }, [resizingColumn]);
+
+  const handleResizeEnd = useCallback(() => {
+    setResizingColumn(null);
+  }, []);
+
+  useEffect(() => {
+    if (resizingColumn) {
+      document.addEventListener('mousemove', handleResize);
+      document.addEventListener('mouseup', handleResizeEnd);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      
+      return () => {
+        document.removeEventListener('mousemove', handleResize);
+        document.removeEventListener('mouseup', handleResizeEnd);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+    }
+  }, [resizingColumn, handleResize, handleResizeEnd]);
 
   if (loading) {
     return (
@@ -136,7 +253,7 @@ const CompaniesList: React.FC = () => {
         </div>
         <div className="error">{error}</div>
         <button className="retry-button" onClick={fetchCompanies}>
-          <FaRedo /> {t('GridView_RetryButton')}
+          <FaRedo /> {t('Button_Retry')}
         </button>
       </div>
     );
@@ -157,7 +274,7 @@ const CompaniesList: React.FC = () => {
                 <input
                   type="text"
                   className="search-input"
-                  placeholder={t('GridView  _SearchPlaceholder')}
+                  placeholder={t('Label_SearchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -190,13 +307,130 @@ const CompaniesList: React.FC = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>{t('Label_Id')}</th>
-                  <th>{t('Label_Name')}</th>
-                  <th>{t('Label_Email')}</th>
-                  <th>{t('Label_Subdomain')}</th>
-                  <th>{t('Label_Status')}</th>
-                  <th>{t('Label_CreatedDate')}</th>
-                  <th className="actions-column">{t('Label_Actions')}</th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('id');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Id')}
+                      {getSortIcon('id')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'id')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.name, minWidth: columnWidths.name, maxWidth: columnWidths.name }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('name');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Name')}
+                      {getSortIcon('name')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'name')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.email, minWidth: columnWidths.email, maxWidth: columnWidths.email }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('email');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Email')}
+                      {getSortIcon('email')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'email')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.subdomain, minWidth: columnWidths.subdomain, maxWidth: columnWidths.subdomain }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('subdomain');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Subdomain')}
+                      {getSortIcon('subdomain')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'subdomain')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.status, minWidth: columnWidths.status, maxWidth: columnWidths.status }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('status');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_Status')}
+                      {getSortIcon('status')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'status')}
+                    />
+                  </th>
+                  <th 
+                    className="sortable resizable" 
+                    style={{ width: columnWidths.createdDate, minWidth: columnWidths.createdDate, maxWidth: columnWidths.createdDate }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.classList.contains('resize-handle')) {
+                        handleSort('createdDate');
+                      }
+                    }}
+                  >
+                    <div className="sortable-header">
+                      {t('Label_CreatedDate')}
+                      {getSortIcon('createdDate')}
+                    </div>
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'createdDate')}
+                    />
+                  </th>
+                  <th 
+                    className="actions-column resizable" 
+                    style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}
+                  >
+                    {t('Label_Actions')}
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart(e, 'actions')}
+                    />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -209,25 +443,25 @@ const CompaniesList: React.FC = () => {
                 ) : (
                   paginatedCompanies.map(company => (
                     <tr key={company.id}>
-                      <td>{company.id}</td>
-                      <td className="name-cell">
+                      <td style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}>{company.id}</td>
+                      <td className="name-cell" style={{ width: columnWidths.name, minWidth: columnWidths.name, maxWidth: columnWidths.name }}>
                         <div className="cell-content">
                           {company.nameTranslationKey || 'N/A'}
                         </div>
                       </td>
-                      <td>{company.email || 'N/A'}</td>
-                      <td>{company.subdomain || 'N/A'}</td>
-                      <td>
+                      <td style={{ width: columnWidths.email, minWidth: columnWidths.email, maxWidth: columnWidths.email }}>{company.email || 'N/A'}</td>
+                      <td style={{ width: columnWidths.subdomain, minWidth: columnWidths.subdomain, maxWidth: columnWidths.subdomain }}>{company.subdomain || 'N/A'}</td>
+                      <td style={{ width: columnWidths.status, minWidth: columnWidths.status, maxWidth: columnWidths.status }}>
                         <span className={`status-badge ${company.isActive ? 'active' : 'inactive'}`}>
                           {company.isActive ? t('Label_Active') : t('Label_Inactive')}
                         </span>
                       </td>
-                      <td>
+                      <td style={{ width: columnWidths.createdDate, minWidth: columnWidths.createdDate, maxWidth: columnWidths.createdDate }}>
                         {company.creationDate
                           ? new Date(company.creationDate).toLocaleDateString()
                           : 'N/A'}
                       </td>
-                      <td className="actions-cell">
+                      <td className="actions-cell" style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}>
                         <div className="action-buttons">
                           <button
                             className="action-button view-button"

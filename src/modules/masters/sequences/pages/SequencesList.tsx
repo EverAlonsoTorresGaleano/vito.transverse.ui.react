@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SequencesDTO } from '../../../../api/vito-transverse-identity-api';
 import { apiClient } from '../../../../services/apiService';
 import Pagination from '../../../../components/Pagination/Pagination';
-import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaEye, FaEdit, FaTrash, FaTimes, FaRedo, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import '../../../../styles/CompaniesList.css';
 import { useTranslation } from 'react-i18next';
 import config from '../../../../config';
@@ -20,6 +20,21 @@ const SequencesList: React.FC = () => {
 	const [deletingId, setDeletingId] = useState<number | null>(null);
 	const [searchTerm, setSearchTerm] = useState<string>('');
 	const [currentCulture, setCurrentCulture] = useState<string>('');
+	const [sortColumn, setSortColumn] = useState<string | null>(null);
+	const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+	const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({
+		id: 100,
+		company: 150,
+		application: 150,
+		sequenceType: 150,
+		sequenceNameFormat: 200,
+		sequenceIndex: 120,
+		textFormat: 150,
+		actions: 280
+	});
+	const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+	const resizeStartXRef = useRef<number>(0);
+	const resizeStartWidthRef = useRef<number>(0);
 
 	const fetchSequences = useCallback(async () => {
 		try {
@@ -81,29 +96,78 @@ const SequencesList: React.FC = () => {
 	};
 
 	const filteredSequences = useMemo(() => {
-		if (!searchTerm.trim()) {
-			return sequences;
+		let filtered = sequences;
+		
+		// Apply search filter
+		if (searchTerm.trim()) {
+			const searchLower = searchTerm.toLowerCase().trim();
+			filtered = sequences.filter(s => {
+				const id = s.id?.toString() || '';
+				const company = s.companyNameTranslationKey?.toLowerCase() || '';
+				const application = s.applicationNameTranslationKey?.toLowerCase() || '';
+				const sequenceType = s.sequenceTypeNameTranslationKey?.toLowerCase() || '';
+				const nameFormat = s.sequenceNameFormat?.toLowerCase() || '';
+				const textFormat = s.textFormat?.toLowerCase() || '';
+				const indexStr = s.sequenceIndex?.toString() || '';
+				return (
+					id.includes(searchLower) ||
+					company.includes(searchLower) ||
+					application.includes(searchLower) ||
+					sequenceType.includes(searchLower) ||
+					nameFormat.includes(searchLower) ||
+					textFormat.includes(searchLower) ||
+					indexStr.includes(searchLower)
+				);
+			});
 		}
-		const searchLower = searchTerm.toLowerCase().trim();
-		return sequences.filter(s => {
-			const id = s.id?.toString() || '';
-			const company = s.companyNameTranslationKey?.toLowerCase() || '';
-			const application = s.applicationNameTranslationKey?.toLowerCase() || '';
-			const sequenceType = s.sequenceTypeNameTranslationKey?.toLowerCase() || '';
-			const nameFormat = s.sequenceNameFormat?.toLowerCase() || '';
-			const textFormat = s.textFormat?.toLowerCase() || '';
-			const indexStr = s.sequenceIndex?.toString() || '';
-			return (
-				id.includes(searchLower) ||
-				company.includes(searchLower) ||
-				application.includes(searchLower) ||
-				sequenceType.includes(searchLower) ||
-				nameFormat.includes(searchLower) ||
-				textFormat.includes(searchLower) ||
-				indexStr.includes(searchLower)
-			);
-		});
-	}, [sequences, searchTerm]);
+		
+		// Apply sorting
+		if (sortColumn) {
+			filtered = [...filtered].sort((a, b) => {
+				let aValue: any;
+				let bValue: any;
+				
+				switch (sortColumn) {
+					case 'id':
+						aValue = a.id ?? 0;
+						bValue = b.id ?? 0;
+						break;
+					case 'company':
+						aValue = (a.companyNameTranslationKey || '').toLowerCase();
+						bValue = (b.companyNameTranslationKey || '').toLowerCase();
+						break;
+					case 'application':
+						aValue = (a.applicationNameTranslationKey || '').toLowerCase();
+						bValue = (b.applicationNameTranslationKey || '').toLowerCase();
+						break;
+					case 'sequenceType':
+						aValue = (a.sequenceTypeNameTranslationKey || '').toLowerCase();
+						bValue = (b.sequenceTypeNameTranslationKey || '').toLowerCase();
+						break;
+					case 'sequenceNameFormat':
+						aValue = (a.sequenceNameFormat || '').toLowerCase();
+						bValue = (b.sequenceNameFormat || '').toLowerCase();
+						break;
+					case 'sequenceIndex':
+						aValue = a.sequenceIndex ?? 0;
+						bValue = b.sequenceIndex ?? 0;
+						break;
+					case 'textFormat':
+						aValue = (a.textFormat || '').toLowerCase();
+						bValue = (b.textFormat || '').toLowerCase();
+						break;
+					default:
+						return 0;
+				}
+				
+				if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+				if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+				return 0;
+			});
+		}
+		
+		return filtered;
+	}, [sequences, searchTerm, sortColumn, sortDirection]);
 
 	const totalPages = Math.ceil(filteredSequences.length / itemsPerPage);
 	const paginatedSequences = useMemo(() => {
@@ -114,7 +178,66 @@ const SequencesList: React.FC = () => {
 
 	useEffect(() => {
 		setCurrentPage(1);
-	}, [itemsPerPage, searchTerm]);
+	}, [itemsPerPage, searchTerm, sortColumn, sortDirection]);
+
+	const handleSort = (column: string) => {
+		if (sortColumn === column) {
+			// Toggle direction if clicking the same column
+			setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+		} else {
+			// Set new column and default to ascending
+			setSortColumn(column);
+			setSortDirection('asc');
+		}
+	};
+
+	const getSortIcon = (column: string) => {
+		if (sortColumn !== column) {
+			return <FaSort className="sort-icon" />;
+		}
+		return sortDirection === 'asc' 
+			? <FaSortUp className="sort-icon sort-active" />
+			: <FaSortDown className="sort-icon sort-active" />;
+	};
+
+	const handleResizeStart = (e: React.MouseEvent, column: string) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setResizingColumn(column);
+		resizeStartXRef.current = e.clientX;
+		resizeStartWidthRef.current = columnWidths[column] || 100;
+	};
+
+	const handleResize = useCallback((e: MouseEvent) => {
+		if (!resizingColumn) return;
+		
+		const diff = e.clientX - resizeStartXRef.current;
+		const newWidth = Math.max(50, resizeStartWidthRef.current + diff);
+		setColumnWidths(prev => ({
+			...prev,
+			[resizingColumn]: newWidth
+		}));
+	}, [resizingColumn]);
+
+	const handleResizeEnd = useCallback(() => {
+		setResizingColumn(null);
+	}, []);
+
+	useEffect(() => {
+		if (resizingColumn) {
+			document.addEventListener('mousemove', handleResize);
+			document.addEventListener('mouseup', handleResizeEnd);
+			document.body.style.cursor = 'col-resize';
+			document.body.style.userSelect = 'none';
+			
+			return () => {
+				document.removeEventListener('mousemove', handleResize);
+				document.removeEventListener('mouseup', handleResizeEnd);
+				document.body.style.cursor = '';
+				document.body.style.userSelect = '';
+			};
+		}
+	}, [resizingColumn, handleResize, handleResizeEnd]);
 
 	if (loading) {
 		return (
@@ -158,9 +281,7 @@ const SequencesList: React.FC = () => {
 					<div className="search-container">
 						<div className="search-controls">
 							<div className="search-wrapper">
-								<div className="search-icon">
-									<FaSearch />
-								</div>
+								<FaSearch className="search-icon" />
 								<input
 									type="text"
 									className="search-input"
@@ -178,60 +299,197 @@ const SequencesList: React.FC = () => {
 									</button>
 								)}
 							</div>
-						
-								<button  className="new-company-button"
-								onClick={() => navigate('/sequence/create')}>
-									<FaPlus  />
-									{t('Button_New')}
-								</button>
-						
+							<button
+								className="new-company-button"
+								onClick={() => navigate('/sequence/create')}
+								title={t('Button_New_Tooltip')}
+							>
+								<FaPlus /> {t('Button_New')}
+							</button>
 						</div>
+						{searchTerm && (
+							<div className="-results-infosearch">
+							</div>
+						)}
 					</div>
 
-					<div className="table-container">
+					<div className="table-wrapper">
 						<table className="data-table">
 							<thead>
 								<tr>
-									<th style={{ width: '80px' }}>{t('Label_Id')}</th>
-									<th>{t('Label_Company')}</th>
-									<th>{t('Label_Application')}</th>
-									<th>{t('Label_SequenceType')}</th>
-									<th>{t('Label_SequenceNameFormat')}</th>
-									<th>{t('Label_SequenceIndex')}</th>
-									<th>{t('Label_TextFormat')}</th>
-									<th style={{ width: '160px' }}>{t('Label_Actions')}</th>
+									<th 
+										className="sortable resizable" 
+										style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('id');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_Id')}
+											{getSortIcon('id')}
+										</div>
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'id')}
+										/>
+									</th>
+									<th 
+										className="sortable resizable" 
+										style={{ width: columnWidths.company, minWidth: columnWidths.company, maxWidth: columnWidths.company }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('company');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_Company')}
+											{getSortIcon('company')}
+										</div>
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'company')}
+										/>
+									</th>
+									<th 
+										className="sortable resizable" 
+										style={{ width: columnWidths.application, minWidth: columnWidths.application, maxWidth: columnWidths.application }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('application');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_Application')}
+											{getSortIcon('application')}
+										</div>
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'application')}
+										/>
+									</th>
+									<th 
+										className="sortable resizable" 
+										style={{ width: columnWidths.sequenceType, minWidth: columnWidths.sequenceType, maxWidth: columnWidths.sequenceType }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('sequenceType');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_SequenceType')}
+											{getSortIcon('sequenceType')}
+										</div>
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'sequenceType')}
+										/>
+									</th>
+									<th 
+										className="sortable resizable" 
+										style={{ width: columnWidths.sequenceNameFormat, minWidth: columnWidths.sequenceNameFormat, maxWidth: columnWidths.sequenceNameFormat }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('sequenceNameFormat');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_SequenceNameFormat')}
+											{getSortIcon('sequenceNameFormat')}
+										</div>
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'sequenceNameFormat')}
+										/>
+									</th>
+									<th 
+										className="sortable resizable" 
+										style={{ width: columnWidths.sequenceIndex, minWidth: columnWidths.sequenceIndex, maxWidth: columnWidths.sequenceIndex }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('sequenceIndex');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_SequenceIndex')}
+											{getSortIcon('sequenceIndex')}
+										</div>
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'sequenceIndex')}
+										/>
+									</th>
+									<th 
+										className="sortable resizable" 
+										style={{ width: columnWidths.textFormat, minWidth: columnWidths.textFormat, maxWidth: columnWidths.textFormat }}
+										onClick={(e) => {
+											const target = e.target as HTMLElement;
+											if (!target.classList.contains('resize-handle')) {
+												handleSort('textFormat');
+											}
+										}}
+									>
+										<div className="sortable-header">
+											{t('Label_TextFormat')}
+											{getSortIcon('textFormat')}
+										</div>
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'textFormat')}
+										/>
+									</th>
+									<th 
+										className="actions-column resizable" 
+										style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}
+									>
+										{t('Label_Actions')}
+										<div 
+											className="resize-handle"
+											onMouseDown={(e) => handleResizeStart(e, 'actions')}
+										/>
+									</th>
 								</tr>
 							</thead>
 							<tbody>
 								{paginatedSequences.length === 0 ? (
 									<tr>
-										<td colSpan={8} style={{ textAlign: 'center', padding: '24px' }}>
-										{searchTerm ? t('GridView_NoResultsFound') : t('GridView_NoDataFound')}
-    
+										<td colSpan={8} className="empty-state">
+											{searchTerm ? t('GridView_NoResultsFound') : t('GridView_NoDataFound')}
 										</td>
 									</tr>
 								) : (
 									paginatedSequences.map(sequence => (
 										<tr key={sequence.id}>
-											<td>{sequence.id}</td>
-											<td>{sequence.companyNameTranslationKey || '-'}</td>
-											<td>{sequence.applicationNameTranslationKey || '-'}</td>
-											<td>{sequence.sequenceTypeNameTranslationKey || '-'}</td>
-											<td>{sequence.sequenceNameFormat || '-'}</td>
-											<td>{sequence.sequenceIndex ?? '-'}</td>
-											<td>{sequence.textFormat || '-'}</td>
-											<td>
+											<td style={{ width: columnWidths.id, minWidth: columnWidths.id, maxWidth: columnWidths.id }}>{sequence.id}</td>
+											<td style={{ width: columnWidths.company, minWidth: columnWidths.company, maxWidth: columnWidths.company }}>{sequence.companyNameTranslationKey || '-'}</td>
+											<td style={{ width: columnWidths.application, minWidth: columnWidths.application, maxWidth: columnWidths.application }}>{sequence.applicationNameTranslationKey || '-'}</td>
+											<td style={{ width: columnWidths.sequenceType, minWidth: columnWidths.sequenceType, maxWidth: columnWidths.sequenceType }}>{t(sequence.sequenceTypeNameTranslationKey || '-')}</td>
+											<td style={{ width: columnWidths.sequenceNameFormat, minWidth: columnWidths.sequenceNameFormat, maxWidth: columnWidths.sequenceNameFormat }}>{sequence.sequenceNameFormat || '-'}</td>
+											<td style={{ width: columnWidths.sequenceIndex, minWidth: columnWidths.sequenceIndex, maxWidth: columnWidths.sequenceIndex }}>{sequence.sequenceIndex ?? '-'}</td>
+											<td style={{ width: columnWidths.textFormat, minWidth: columnWidths.textFormat, maxWidth: columnWidths.textFormat }}>{sequence.textFormat || '-'}</td>
+											<td className="actions-cell" style={{ width: columnWidths.actions, minWidth: columnWidths.actions, maxWidth: columnWidths.actions }}>
 												<div className="action-buttons">
 													<button
 														className="action-button view-button"
 														title={t('Button_View_Tooltip')}
-
 														onClick={() => sequence.id && handleView(sequence.id)}
 													>
 														<FaEye /> {t('Button_View')}
 													</button>
 													<button
-														className="action-button edit-button"
+														className="action-button secondary-button"
 														title={t('Button_Edit_Tooltip')}
 														onClick={() => sequence.id && handleEdit(sequence.id)}
 													>
@@ -243,7 +501,7 @@ const SequencesList: React.FC = () => {
 														onClick={() => sequence.id && handleDelete(sequence.id)}
 														disabled={deletingId === sequence.id}
 													>
-														<FaTrash /> {t('Button_Delete')}
+														<FaTrash /> {deletingId === sequence.id ? t('Button_Deleting') : t('Button_Delete')}
 													</button>
 												</div>
 											</td>
