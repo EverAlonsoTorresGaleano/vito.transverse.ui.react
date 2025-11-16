@@ -2,7 +2,7 @@ import React, { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../utils/auth';
 import { apiClient } from '../services/apiService';
-import { CompanyDTO, CompanyApplicationsDTO, ListItemDTO } from '../api/vito-transverse-identity-api';
+import { CompanyDTO, ListItemDTO } from '../api/vito-transverse-identity-api';
 import { useTranslation } from 'react-i18next';
 import './UserProfile.css';
 
@@ -59,9 +59,8 @@ const CreateCompany: React.FC = () => {
       }*/
 
       // Create company applications DTO
-      const companyApplications: CompanyApplicationsDTO = {
-        userId: userId,
-        company: {
+      const companyApplications: CompanyDTO = {
+
           nameTranslationKey: formData.nameTranslationKey,
           descriptionTranslationKey: formData.descriptionTranslationKey,
           email: formData.email,
@@ -70,8 +69,6 @@ const CreateCompany: React.FC = () => {
           countryFk: formData.countryFk || undefined,
           isActive: formData.isActive,
           isSystemCompany: formData.isSystemCompany
-        } as CompanyDTO,
-        applications: []
       };
 
       const createdCompany = await apiClient.postApiCompaniesV1(companyApplications);

@@ -230,14 +230,14 @@ const CompaniesList: React.FC = () => {
                       <td className="actions-cell">
                         <div className="action-buttons">
                           <button
-                            className="action-button view-button"
+                            className="action-button primary-button"
                             onClick={() => handleView(company.id!)}
                             title={t('GridView_ActionsViewButtonTooltip')}
                           >
                             <FaEye /> {t('GridView_ActionsViewButton')}
                           </button>
                           <button
-                            className="action-button edit-button"
+                            className="action-button secondary-button"
                             onClick={() => handleEdit(company.id!)}
                             title={t('GridView_ActionsEditButtonTooltip')}
                           >

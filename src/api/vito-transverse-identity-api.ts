@@ -113,7 +113,7 @@ export interface IClient {
 
     getApiCompaniesV1All(): Promise<CompanyDTO[]>;
 
-    postApiCompaniesV1(companyApplications: CompanyApplicationsDTO): Promise<CompanyDTO>;
+    postApiCompaniesV1(companyApplications: CompanyDTO): Promise<CompanyDTO>;
 
     putApiCompaniesV1(companyInfo: CompanyDTO): Promise<CompanyDTO>;
 
@@ -2658,7 +2658,7 @@ export class Client implements IClient {
         return Promise.resolve<CompanyDTO[]>(null as any);
     }
 
-    postApiCompaniesV1(companyApplications: CompanyApplicationsDTO): Promise<CompanyDTO> {
+    postApiCompaniesV1(companyApplications: CompanyDTO): Promise<CompanyDTO> {
         let url_ = this.baseUrl + "/api/Companies/v1";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -7198,12 +7198,6 @@ export interface CompanyDTO {
     isActive?: boolean;
     countryNameTranslationKey?: string;
     languageNameTranslationKey?: string;
-}
-
-export interface CompanyApplicationsDTO {
-    userId?: number;
-    company?: CompanyDTO;
-    applications?: ApplicationDTO[];
 }
 
 export interface CompanyMembershipsDTO {
