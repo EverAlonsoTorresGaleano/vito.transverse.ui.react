@@ -68,13 +68,13 @@ const EntitiesList: React.FC = () => {
   }, [fetchEntities]);
 
   const handleDelete = async (entityId: number) => {
-    if (!window.confirm(t('EntitiesListPage_DeleteConfirmation'))) {
+    if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
       return;
     }
 
     try {
       setDeletingId(entityId);
-      await apiClient.deleteApiAuditoriesV1EntitiesDelete(entityId);
+      await apiClient.deleteApiAuditoriesV1Entities(entityId);
       await fetchEntities();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete entity';

@@ -70,13 +70,13 @@ const SequencesList: React.FC = () => {
 	}, [fetchSequences]);
 
 	const handleDelete = async (sequenceId: number) => {
-		if (!window.confirm(t('SequencesListPage_DeleteConfirmation'))) {
+		if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
 			return;
 		}
 
 		try {
 			setDeletingId(sequenceId);
-			await apiClient.deleteApiMasterV1SequencesDelete(sequenceId);
+			await apiClient.deleteApiMasterV1Sequences(sequenceId);
 			await fetchSequences();
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Failed to delete sequence';

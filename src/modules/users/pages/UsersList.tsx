@@ -67,13 +67,13 @@ const UsersList: React.FC = () => {
   }, [fetchUsers]);
 
   const handleDelete = async (userId: number) => {
-    if (!window.confirm(t('UsersListPage_DeleteConfirmation'))) {
+    if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
       return;
     }
 
     try {
       setDeletingId(userId);
-      await apiClient.deleteApiUsersV1Delete(userId);
+      await apiClient.deleteApiUsersV1(userId);
       await fetchUsers();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : t('Label_DeleteError');

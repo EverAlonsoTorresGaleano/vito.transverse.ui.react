@@ -65,13 +65,13 @@ const LanguagesList: React.FC = () => {
 	}, [fetchLanguages]);
 
 	const handleDelete = async (languageId: string) => {
-		if (!window.confirm(t('LanguagesListPage_DeleteConfirmation'))) {
+		if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
 		 return;
 		}
 
 		try {
 			setDeletingId(languageId);
-			await apiClient.deleteApiMasterV1LanguagesDelete(languageId);
+			await apiClient.deleteApiMasterV1Languages(languageId);
 			await fetchLanguages();
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Failed to delete language';

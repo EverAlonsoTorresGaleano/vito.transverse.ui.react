@@ -66,13 +66,13 @@ const GeneralTypeGroupsList: React.FC = () => {
   }, [fetchGroups]);
 
   const handleDelete = async (groupId: number) => {
-    if (!window.confirm(t('GeneralTypeGroupsListPage_DeleteConfirmation'))) {
+    if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
       return;
     }
 
     try {
       setDeletingId(groupId);
-      await apiClient.deleteApiMasterV1GeneralTypeGroupsDelete(groupId);
+      await apiClient.deleteApiMasterV1GeneralTypeGroups(groupId);
       await fetchGroups();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete general type group';

@@ -66,13 +66,13 @@ const CountriesList: React.FC = () => {
   }, [fetchCountries]);
 
   const handleDelete = async (countryId: string) => {
-    if (!window.confirm(t('CountriesListPage_DeleteConfirmation'))) {
+    if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
       return;
     }
 
     try {
       setDeletingId(countryId);
-      await apiClient.deleteApiMasterV1CountriesDelete(countryId);
+      await apiClient.deleteApiMasterV1Countries(countryId);
       await fetchCountries();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete country';

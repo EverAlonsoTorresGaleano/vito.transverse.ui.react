@@ -67,13 +67,13 @@ const NotificationTemplatesList: React.FC = () => {
 	}, [fetchTemplates]);
 
 	const handleDelete = async (templateId: number) => {
-	if (!window.confirm(t('NotificationTemplatesListPage_DeleteConfirmation'))) {
+	if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
 			return;
 		}
 
 		try {
 			setDeletingId(templateId);
-			await apiClient.deleteApiMasterV1NotificationTemplatesDelete(templateId);
+			await apiClient.deleteApiMasterV1NotificationTemplates(templateId);
 			await fetchTemplates();
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Failed to delete template';

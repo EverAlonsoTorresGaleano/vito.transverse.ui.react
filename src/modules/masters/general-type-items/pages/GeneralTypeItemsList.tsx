@@ -68,13 +68,13 @@ const GeneralTypeItemsList: React.FC = () => {
   }, [fetchItems]);
 
   const handleDelete = async (itemId: number) => {
-    if (!window.confirm(t('GeneralTypeItemsListPage_DeleteConfirmation'))) {
+    if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
       return;
     }
 
     try {
       setDeletingId(itemId);
-      await apiClient.deleteApiMasterV1GeneralTypeItemsDelete(itemId);
+      await apiClient.deleteApiMasterV1GeneralTypeItems(itemId);
       await fetchItems();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete general type item';

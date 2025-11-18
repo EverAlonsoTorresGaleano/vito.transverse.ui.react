@@ -71,13 +71,13 @@ const CompanyEntityAuditsList: React.FC = () => {
 	}, [fetchAudits]);
 
 	const handleDelete = async (auditId: number) => {
-		if (!window.confirm(t('CompaniesListPage_DeleteConfirmation'))) {
+		if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
 			return;
 		}
 
 		try {
 			setDeletingId(auditId);
-			await apiClient.deleteApiAuditoriesV1CompanyEntityAuditsDelete(auditId);
+			await apiClient.deleteApiAuditoriesV1CompanyEntityAudits(auditId);
 			await fetchAudits();
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Failed to delete audit';

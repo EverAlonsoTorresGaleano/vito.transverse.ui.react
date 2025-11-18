@@ -68,13 +68,13 @@ const CulturesList: React.FC = () => {
 	}, [fetchCultures]);
 
 	const handleDelete = async (cultureId: string) => {
-		if (!window.confirm(t('CulturesListPage_DeleteConfirmation'))) {
+		if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
 			return;
 		}
 
 		try {
 			setDeletingId(cultureId);
-			await apiClient.deleteApiMasterV1CulturesDelete(cultureId);
+			await apiClient.deleteApiMasterV1Cultures(cultureId);
 			await fetchCultures();
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Failed to delete culture';

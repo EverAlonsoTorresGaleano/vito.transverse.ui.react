@@ -293,7 +293,7 @@ const Login: React.FC = () => {
               className="login-button"
               disabled={isLoading || changingLanguage}
             >
-              {isLoading ? t('LoginPage_LoginButtonProcessing') : t('LoginPage_LoginButton')}
+              {isLoading ? t('Button_LoggingIn') : t('Button_Login')}
             </button>
 
 

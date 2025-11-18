@@ -71,13 +71,13 @@ const ApplicationsList: React.FC = () => {
   }, [fetchApplications]);
 
   const handleDelete = async (applicationId: number) => {
-    if (!window.confirm(t('ApplicationsListPage_DeleteConfirmation'))) {
+    if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
       return;
     }
 
     try {
       setDeletingId(applicationId);
-      await apiClient.deleteApiApplicationsV1Delete(applicationId);
+      await apiClient.deleteApiApplicationsV1(applicationId);
       await fetchApplications();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete application';

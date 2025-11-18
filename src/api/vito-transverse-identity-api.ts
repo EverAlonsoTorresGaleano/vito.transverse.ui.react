@@ -25,9 +25,9 @@ export interface IClient {
 
     getApiUsersV1(userId: number): Promise<UserDTO>;
 
-    getApiUsersV1Menu(): Promise<MenuGroupDTO[]>;
+    deleteApiUsersV1(userId: number): Promise<void>;
 
-    deleteApiUsersV1Delete(userId: number): Promise<void>;
+    getApiUsersV1Menu(): Promise<MenuGroupDTO[]>;
 
     patchApiUsersV1Password(companyId: number | null | undefined, userInfo: UserDTO): Promise<UserDTO>;
 
@@ -43,7 +43,7 @@ export interface IClient {
 
     getApiUsersV1UserRoles(userId: number, roleId: number, companyFk: number | null | undefined, applicationFk: number | null | undefined): Promise<UserRoleDTO>;
 
-    deleteApiUsersV1UserRolesDelete(userId: number, roleId: number, companyFk: number | null | undefined, applicationFk: number | null | undefined): Promise<void>;
+    deleteApiUsersV1UserRoles(userId: number, roleId: number, companyFk: number | null | undefined, applicationFk: number | null | undefined): Promise<void>;
 
     getApiUsersV1Permissions(userId: number): Promise<UserDTO>;
 
@@ -55,7 +55,9 @@ export interface IClient {
 
     getApiUsersV1Roles(roleId: number): Promise<RoleDTO>;
 
-    deleteApiUsersV1RolesDelete(roleId: number): Promise<void>;
+    deleteApiUsersV1Roles(roleId: number): Promise<void>;
+
+    optionsApiApplicationsV1(): Promise<string[]>;
 
     getApiApplicationsV1All(): Promise<ApplicationDTO[]>;
 
@@ -67,7 +69,7 @@ export interface IClient {
 
     getApiApplicationsV1(applicationId: number): Promise<ApplicationDTO>;
 
-    deleteApiApplicationsV1Delete(applicationId: number): Promise<void>;
+    deleteApiApplicationsV1(applicationId: number): Promise<void>;
 
     getApiApplicationsV1ByCompany(companyId: number | null): Promise<ApplicationDTO[]>;
 
@@ -85,7 +87,7 @@ export interface IClient {
 
     getApiApplicationsV1Modules(moduleId: number): Promise<ModuleDTO>;
 
-    deleteApiApplicationsV1ModulesDelete(moduleId: number): Promise<void>;
+    deleteApiApplicationsV1Modules(moduleId: number): Promise<void>;
 
     getApiApplicationsV1ModulesEndpoints(moduleId: number): Promise<EndpointDTO[]>;
 
@@ -97,19 +99,19 @@ export interface IClient {
 
     getApiApplicationsV1Components(componentId: number): Promise<ComponentDTO>;
 
+    deleteApiApplicationsV1Components(componentId: number): Promise<void>;
+
     postApiApplicationsV1Components(endpointId: number, userId: number, componentDTO: ComponentDTO): Promise<ComponentDTO>;
 
     putApiApplicationsV1Components(componentInfo: ComponentDTO): Promise<ComponentDTO>;
 
-    deleteApiApplicationsV1ComponentsDelete(componentId: number): Promise<void>;
-
     getApiApplicationsV1Endpoints(endpointId: number): Promise<EndpointDTO>;
+
+    deleteApiApplicationsV1Endpoints(endpointId: number): Promise<void>;
 
     postApiApplicationsV1Endpoints(moduleId: number, userId: number, endpointDTO: EndpointDTO): Promise<EndpointDTO>;
 
     putApiApplicationsV1Endpoints(endpointInfo: EndpointDTO): Promise<EndpointDTO>;
-
-    deleteApiApplicationsV1EndpointsDelete(endpointId: number): Promise<void>;
 
     getApiCompaniesV1All(): Promise<CompanyDTO[]>;
 
@@ -121,7 +123,7 @@ export interface IClient {
 
     getApiCompaniesV1(companyId: number): Promise<CompanyDTO>;
 
-    deleteApiCompaniesV1Delete(companyId: number): Promise<void>;
+    deleteApiCompaniesV1(companyId: number): Promise<void>;
 
     getApiCompaniesV1MembershipsAll(companyId: number | null | undefined): Promise<CompanyMembershipsDTO[]>;
 
@@ -131,7 +133,7 @@ export interface IClient {
 
     getApiCompaniesV1Memberships(membershipId: number): Promise<CompanyMembershipsDTO>;
 
-    deleteApiCompaniesV1MembershipsDelete(membershipId: number): Promise<void>;
+    deleteApiCompaniesV1Memberships(membershipId: number): Promise<void>;
 
     getApiCompaniesV1MembershipTypesAll(): Promise<MembershipTypeDTO[]>;
 
@@ -143,7 +145,7 @@ export interface IClient {
 
     getApiCompaniesV1MembershipTypes(membershipTypeId: number): Promise<MembershipTypeDTO>;
 
-    deleteApiCompaniesV1MembershipTypesDelete(membershipTypeId: number): Promise<void>;
+    deleteApiCompaniesV1MembershipTypes(membershipTypeId: number): Promise<void>;
 
     getApiMasterV1SequencesAll(): Promise<SequencesDTO[]>;
 
@@ -153,7 +155,7 @@ export interface IClient {
 
     getApiMasterV1Sequences(sequenceId: number): Promise<SequencesDTO>;
 
-    deleteApiMasterV1SequencesDelete(sequenceId: number): Promise<void>;
+    deleteApiMasterV1Sequences(sequenceId: number): Promise<void>;
 
     getApiMasterV1CulturesAll(): Promise<CultureDTO[]>;
 
@@ -171,7 +173,7 @@ export interface IClient {
 
     getApiMasterV1Cultures(cultureId: string): Promise<CultureDTO>;
 
-    deleteApiMasterV1CulturesDelete(cultureId: string): Promise<void>;
+    deleteApiMasterV1Cultures(cultureId: string): Promise<void>;
 
     getApiMasterV1LanguagesAll(): Promise<LanguageDTO[]>;
 
@@ -183,7 +185,7 @@ export interface IClient {
 
     getApiMasterV1Languages(languageId: string): Promise<LanguageDTO>;
 
-    deleteApiMasterV1LanguagesDelete(languageId: string): Promise<void>;
+    deleteApiMasterV1Languages(languageId: string): Promise<void>;
 
     getApiMasterV1CountriesAll(): Promise<CountryDTO[]>;
 
@@ -195,7 +197,7 @@ export interface IClient {
 
     getApiMasterV1Countries(countryId: string): Promise<CountryDTO>;
 
-    deleteApiMasterV1CountriesDelete(countryId: string): Promise<void>;
+    deleteApiMasterV1Countries(countryId: string): Promise<void>;
 
     getApiMasterV1GeneralTypeGroupsAll(): Promise<GeneralTypeGroupDTO[]>;
 
@@ -207,7 +209,7 @@ export interface IClient {
 
     getApiMasterV1GeneralTypeGroups(generalTypeGroupId: number): Promise<GeneralTypeGroupDTO>;
 
-    deleteApiMasterV1GeneralTypeGroupsDelete(generalTypeGroupId: number): Promise<void>;
+    deleteApiMasterV1GeneralTypeGroups(generalTypeGroupId: number): Promise<void>;
 
     getApiMasterV1GeneralTypeItemsAll(): Promise<GeneralTypeItemDTO[]>;
 
@@ -221,7 +223,7 @@ export interface IClient {
 
     getApiMasterV1GeneralTypeItems(generalTypeItemId: number): Promise<GeneralTypeItemDTO>;
 
-    deleteApiMasterV1GeneralTypeItemsDelete(generalTypeItemId: number): Promise<void>;
+    deleteApiMasterV1GeneralTypeItems(generalTypeItemId: number): Promise<void>;
 
     getApiMasterV1NotificationTemplatesAll(): Promise<NotificationTemplateDTO[]>;
 
@@ -233,7 +235,7 @@ export interface IClient {
 
     getApiMasterV1NotificationTemplates(notificationTemplateId: number): Promise<NotificationTemplateDTO>;
 
-    deleteApiMasterV1NotificationTemplatesDelete(notificationTemplateId: number): Promise<void>;
+    deleteApiMasterV1NotificationTemplates(notificationTemplateId: number): Promise<void>;
 
     postApiOauth2V1Token(requestBody: TokenRequestDTO): Promise<TokenResponseDTO>;
 
@@ -247,17 +249,17 @@ export interface IClient {
 
     getApiLocalizationsV1(messageKey: string): Promise<CultureTranslationDTO>;
 
+    deleteApiLocalizationsV1(messageKey: string): Promise<void>;
+
     getApiLocalizationsV1All2(messageKey: string): Promise<CultureTranslationDTO[]>;
 
     getApiLocalizationsV1WithParams(messageKey: string, parameters: string[] | null | undefined): Promise<CultureTranslationDTO>;
-
-    deleteApiLocalizationsV1Delete(translationKey: string): Promise<void>;
 
     getApiCacheV1(): Promise<CacheSummaryDTO[]>;
 
     deleteApiCacheV1Clear(): Promise<boolean>;
 
-    deleteApiCacheV1Delete(cacheKey: string): Promise<boolean>;
+    deleteApiCacheV1(cacheKey: string): Promise<boolean>;
 
     getApiMediaV1PicturesAll(companyId: number): Promise<PictureDTO[]>;
 
@@ -271,7 +273,7 @@ export interface IClient {
 
     getApiMediaV1Pictures(pictureId: number): Promise<PictureDTO>;
 
-    deleteApiMediaV1PicturesDelete(pictureId: number): Promise<void>;
+    deleteApiMediaV1Pictures(pictureId: number): Promise<void>;
 
     getApiAuditoriesV1AuditRecords(companyId: number | null | undefined): Promise<AuditRecordDTO[]>;
 
@@ -283,7 +285,7 @@ export interface IClient {
 
     getApiAuditoriesV1CompanyEntityAudits(companyEntityAuditId: number): Promise<CompanyEntityAuditDTO>;
 
-    deleteApiAuditoriesV1CompanyEntityAuditsDelete(companyEntityAuditId: number): Promise<void>;
+    deleteApiAuditoriesV1CompanyEntityAudits(companyEntityAuditId: number): Promise<void>;
 
     getApiAuditoriesV1ActivityLogs(companyId: number | null | undefined): Promise<ActivityLogDTO[]>;
 
@@ -299,7 +301,7 @@ export interface IClient {
 
     getApiAuditoriesV1Entities(entityId: number): Promise<EntityDTO>;
 
-    deleteApiAuditoriesV1EntitiesDelete(entityId: number): Promise<void>;
+    deleteApiAuditoriesV1Entities(entityId: number): Promise<void>;
 
     getApiTwilioV1SendSMS(message: string): Promise<PingResponseDTO>;
 
@@ -651,6 +653,43 @@ export class Client implements IClient {
         return Promise.resolve<UserDTO>(null as any);
     }
 
+    deleteApiUsersV1(userId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/v1/{userId}";
+        if (userId === undefined || userId === null)
+            throw new globalThis.Error("The parameter 'userId' must be defined.");
+        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteApiUsersV1(_response);
+        });
+    }
+
+    protected processDeleteApiUsersV1(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     getApiUsersV1Menu(): Promise<MenuGroupDTO[]> {
         let url_ = this.baseUrl + "/api/Users/v1/Menu";
         url_ = url_.replace(/[?&]$/, "");
@@ -692,43 +731,6 @@ export class Client implements IClient {
             });
         }
         return Promise.resolve<MenuGroupDTO[]>(null as any);
-    }
-
-    deleteApiUsersV1Delete(userId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Users/v1/Delete/{userId}";
-        if (userId === undefined || userId === null)
-            throw new globalThis.Error("The parameter 'userId' must be defined.");
-        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiUsersV1Delete(_response);
-        });
-    }
-
-    protected processDeleteApiUsersV1Delete(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
     }
 
     patchApiUsersV1Password(companyId: number | null | undefined, userInfo: UserDTO): Promise<UserDTO> {
@@ -1066,8 +1068,8 @@ export class Client implements IClient {
         return Promise.resolve<UserRoleDTO>(null as any);
     }
 
-    deleteApiUsersV1UserRolesDelete(userId: number, roleId: number, companyFk: number | null | undefined, applicationFk: number | null | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/api/Users/v1/UserRoles/Delete/{userId}/{roleId}?";
+    deleteApiUsersV1UserRoles(userId: number, roleId: number, companyFk: number | null | undefined, applicationFk: number | null | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/v1/UserRoles/{userId}/{roleId}?";
         if (userId === undefined || userId === null)
             throw new globalThis.Error("The parameter 'userId' must be defined.");
         url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
@@ -1087,11 +1089,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiUsersV1UserRolesDelete(_response);
+            return this.processDeleteApiUsersV1UserRoles(_response);
         });
     }
 
-    protected processDeleteApiUsersV1UserRolesDelete(response: Response): Promise<void> {
+    protected processDeleteApiUsersV1UserRoles(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1337,8 +1339,8 @@ export class Client implements IClient {
         return Promise.resolve<RoleDTO>(null as any);
     }
 
-    deleteApiUsersV1RolesDelete(roleId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Users/v1/Roles/Delete/{roleId}";
+    deleteApiUsersV1Roles(roleId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/v1/Roles/{roleId}";
         if (roleId === undefined || roleId === null)
             throw new globalThis.Error("The parameter 'roleId' must be defined.");
         url_ = url_.replace("{roleId}", encodeURIComponent("" + roleId));
@@ -1351,11 +1353,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiUsersV1RolesDelete(_response);
+            return this.processDeleteApiUsersV1Roles(_response);
         });
     }
 
-    protected processDeleteApiUsersV1RolesDelete(response: Response): Promise<void> {
+    protected processDeleteApiUsersV1Roles(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1372,6 +1374,49 @@ export class Client implements IClient {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    optionsApiApplicationsV1(): Promise<string[]> {
+        let url_ = this.baseUrl + "/api/applications/v1";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "OPTIONS",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOptionsApiApplicationsV1(_response);
+        });
+    }
+
+    protected processOptionsApiApplicationsV1(response: Response): Promise<string[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as string[];
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as HttpValidationProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string[]>(null as any);
     }
 
     getApiApplicationsV1All(): Promise<ApplicationDTO[]> {
@@ -1608,8 +1653,8 @@ export class Client implements IClient {
         return Promise.resolve<ApplicationDTO>(null as any);
     }
 
-    deleteApiApplicationsV1Delete(applicationId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/applications/v1/Delete/{applicationId}";
+    deleteApiApplicationsV1(applicationId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/applications/v1/{applicationId}";
         if (applicationId === undefined || applicationId === null)
             throw new globalThis.Error("The parameter 'applicationId' must be defined.");
         url_ = url_.replace("{applicationId}", encodeURIComponent("" + applicationId));
@@ -1622,11 +1667,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiApplicationsV1Delete(_response);
+            return this.processDeleteApiApplicationsV1(_response);
         });
     }
 
-    protected processDeleteApiApplicationsV1Delete(response: Response): Promise<void> {
+    protected processDeleteApiApplicationsV1(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2020,8 +2065,8 @@ export class Client implements IClient {
         return Promise.resolve<ModuleDTO>(null as any);
     }
 
-    deleteApiApplicationsV1ModulesDelete(moduleId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/applications/v1/Modules/Delete/{moduleId}";
+    deleteApiApplicationsV1Modules(moduleId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/applications/v1/Modules/{moduleId}";
         if (moduleId === undefined || moduleId === null)
             throw new globalThis.Error("The parameter 'moduleId' must be defined.");
         url_ = url_.replace("{moduleId}", encodeURIComponent("" + moduleId));
@@ -2034,11 +2079,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiApplicationsV1ModulesDelete(_response);
+            return this.processDeleteApiApplicationsV1Modules(_response);
         });
     }
 
-    protected processDeleteApiApplicationsV1ModulesDelete(response: Response): Promise<void> {
+    protected processDeleteApiApplicationsV1Modules(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2287,6 +2332,43 @@ export class Client implements IClient {
         return Promise.resolve<ComponentDTO>(null as any);
     }
 
+    deleteApiApplicationsV1Components(componentId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/applications/v1/Components/{componentId}";
+        if (componentId === undefined || componentId === null)
+            throw new globalThis.Error("The parameter 'componentId' must be defined.");
+        url_ = url_.replace("{componentId}", encodeURIComponent("" + componentId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteApiApplicationsV1Components(_response);
+        });
+    }
+
+    protected processDeleteApiApplicationsV1Components(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     postApiApplicationsV1Components(endpointId: number, userId: number, componentDTO: ComponentDTO): Promise<ComponentDTO> {
         let url_ = this.baseUrl + "/api/applications/v1/Components?";
         if (endpointId === undefined || endpointId === null)
@@ -2389,43 +2471,6 @@ export class Client implements IClient {
         return Promise.resolve<ComponentDTO>(null as any);
     }
 
-    deleteApiApplicationsV1ComponentsDelete(componentId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/applications/v1/Components/Delete/{componentId}";
-        if (componentId === undefined || componentId === null)
-            throw new globalThis.Error("The parameter 'componentId' must be defined.");
-        url_ = url_.replace("{componentId}", encodeURIComponent("" + componentId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiApplicationsV1ComponentsDelete(_response);
-        });
-    }
-
-    protected processDeleteApiApplicationsV1ComponentsDelete(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
     getApiApplicationsV1Endpoints(endpointId: number): Promise<EndpointDTO> {
         let url_ = this.baseUrl + "/api/applications/v1/endpoints/{endpointId}";
         if (endpointId === undefined || endpointId === null)
@@ -2470,6 +2515,43 @@ export class Client implements IClient {
             });
         }
         return Promise.resolve<EndpointDTO>(null as any);
+    }
+
+    deleteApiApplicationsV1Endpoints(endpointId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/applications/v1/endpoints/{endpointId}";
+        if (endpointId === undefined || endpointId === null)
+            throw new globalThis.Error("The parameter 'endpointId' must be defined.");
+        url_ = url_.replace("{endpointId}", encodeURIComponent("" + endpointId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteApiApplicationsV1Endpoints(_response);
+        });
+    }
+
+    protected processDeleteApiApplicationsV1Endpoints(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     postApiApplicationsV1Endpoints(moduleId: number, userId: number, endpointDTO: EndpointDTO): Promise<EndpointDTO> {
@@ -2572,43 +2654,6 @@ export class Client implements IClient {
             });
         }
         return Promise.resolve<EndpointDTO>(null as any);
-    }
-
-    deleteApiApplicationsV1EndpointsDelete(endpointId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/applications/v1/endpoints/Delete/{endpointId}";
-        if (endpointId === undefined || endpointId === null)
-            throw new globalThis.Error("The parameter 'endpointId' must be defined.");
-        url_ = url_.replace("{endpointId}", encodeURIComponent("" + endpointId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiApplicationsV1EndpointsDelete(_response);
-        });
-    }
-
-    protected processDeleteApiApplicationsV1EndpointsDelete(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
     }
 
     getApiCompaniesV1All(): Promise<CompanyDTO[]> {
@@ -2837,8 +2882,8 @@ export class Client implements IClient {
         return Promise.resolve<CompanyDTO>(null as any);
     }
 
-    deleteApiCompaniesV1Delete(companyId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Companies/v1/Delete/{companyId}";
+    deleteApiCompaniesV1(companyId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Companies/v1/{companyId}";
         if (companyId === undefined || companyId === null)
             throw new globalThis.Error("The parameter 'companyId' must be defined.");
         url_ = url_.replace("{companyId}", encodeURIComponent("" + companyId));
@@ -2851,11 +2896,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiCompaniesV1Delete(_response);
+            return this.processDeleteApiCompaniesV1(_response);
         });
     }
 
-    protected processDeleteApiCompaniesV1Delete(response: Response): Promise<void> {
+    protected processDeleteApiCompaniesV1(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3055,8 +3100,8 @@ export class Client implements IClient {
         return Promise.resolve<CompanyMembershipsDTO>(null as any);
     }
 
-    deleteApiCompaniesV1MembershipsDelete(membershipId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Companies/v1/Memberships/Delete/{membershipId}";
+    deleteApiCompaniesV1Memberships(membershipId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Companies/v1/Memberships/{membershipId}";
         if (membershipId === undefined || membershipId === null)
             throw new globalThis.Error("The parameter 'membershipId' must be defined.");
         url_ = url_.replace("{membershipId}", encodeURIComponent("" + membershipId));
@@ -3069,11 +3114,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiCompaniesV1MembershipsDelete(_response);
+            return this.processDeleteApiCompaniesV1Memberships(_response);
         });
     }
 
-    protected processDeleteApiCompaniesV1MembershipsDelete(response: Response): Promise<void> {
+    protected processDeleteApiCompaniesV1Memberships(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3322,8 +3367,8 @@ export class Client implements IClient {
         return Promise.resolve<MembershipTypeDTO>(null as any);
     }
 
-    deleteApiCompaniesV1MembershipTypesDelete(membershipTypeId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Companies/v1/MembershipTypes/Delete/{membershipTypeId}";
+    deleteApiCompaniesV1MembershipTypes(membershipTypeId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Companies/v1/MembershipTypes/{membershipTypeId}";
         if (membershipTypeId === undefined || membershipTypeId === null)
             throw new globalThis.Error("The parameter 'membershipTypeId' must be defined.");
         url_ = url_.replace("{membershipTypeId}", encodeURIComponent("" + membershipTypeId));
@@ -3336,11 +3381,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiCompaniesV1MembershipTypesDelete(_response);
+            return this.processDeleteApiCompaniesV1MembershipTypes(_response);
         });
     }
 
-    protected processDeleteApiCompaniesV1MembershipTypesDelete(response: Response): Promise<void> {
+    protected processDeleteApiCompaniesV1MembershipTypes(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3542,8 +3587,8 @@ export class Client implements IClient {
         return Promise.resolve<SequencesDTO>(null as any);
     }
 
-    deleteApiMasterV1SequencesDelete(sequenceId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Master/v1/Sequences/Delete/{sequenceId}";
+    deleteApiMasterV1Sequences(sequenceId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Master/v1/Sequences/{sequenceId}";
         if (sequenceId === undefined || sequenceId === null)
             throw new globalThis.Error("The parameter 'sequenceId' must be defined.");
         url_ = url_.replace("{sequenceId}", encodeURIComponent("" + sequenceId));
@@ -3556,11 +3601,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiMasterV1SequencesDelete(_response);
+            return this.processDeleteApiMasterV1Sequences(_response);
         });
     }
 
-    protected processDeleteApiMasterV1SequencesDelete(response: Response): Promise<void> {
+    protected processDeleteApiMasterV1Sequences(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3934,8 +3979,8 @@ export class Client implements IClient {
         return Promise.resolve<CultureDTO>(null as any);
     }
 
-    deleteApiMasterV1CulturesDelete(cultureId: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/Master/v1/Cultures/Delete/{cultureId}";
+    deleteApiMasterV1Cultures(cultureId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Master/v1/Cultures/{cultureId}";
         if (cultureId === undefined || cultureId === null)
             throw new globalThis.Error("The parameter 'cultureId' must be defined.");
         url_ = url_.replace("{cultureId}", encodeURIComponent("" + cultureId));
@@ -3948,11 +3993,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiMasterV1CulturesDelete(_response);
+            return this.processDeleteApiMasterV1Cultures(_response);
         });
     }
 
-    protected processDeleteApiMasterV1CulturesDelete(response: Response): Promise<void> {
+    protected processDeleteApiMasterV1Cultures(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -4197,8 +4242,8 @@ export class Client implements IClient {
         return Promise.resolve<LanguageDTO>(null as any);
     }
 
-    deleteApiMasterV1LanguagesDelete(languageId: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/Master/v1/Languages/Delete/{languageId}";
+    deleteApiMasterV1Languages(languageId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Master/v1/Languages/{languageId}";
         if (languageId === undefined || languageId === null)
             throw new globalThis.Error("The parameter 'languageId' must be defined.");
         url_ = url_.replace("{languageId}", encodeURIComponent("" + languageId));
@@ -4211,11 +4256,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiMasterV1LanguagesDelete(_response);
+            return this.processDeleteApiMasterV1Languages(_response);
         });
     }
 
-    protected processDeleteApiMasterV1LanguagesDelete(response: Response): Promise<void> {
+    protected processDeleteApiMasterV1Languages(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -4460,8 +4505,8 @@ export class Client implements IClient {
         return Promise.resolve<CountryDTO>(null as any);
     }
 
-    deleteApiMasterV1CountriesDelete(countryId: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/Master/v1/Countries/Delete/{countryId}";
+    deleteApiMasterV1Countries(countryId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Master/v1/Countries/{countryId}";
         if (countryId === undefined || countryId === null)
             throw new globalThis.Error("The parameter 'countryId' must be defined.");
         url_ = url_.replace("{countryId}", encodeURIComponent("" + countryId));
@@ -4474,11 +4519,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiMasterV1CountriesDelete(_response);
+            return this.processDeleteApiMasterV1Countries(_response);
         });
     }
 
-    protected processDeleteApiMasterV1CountriesDelete(response: Response): Promise<void> {
+    protected processDeleteApiMasterV1Countries(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -4723,8 +4768,8 @@ export class Client implements IClient {
         return Promise.resolve<GeneralTypeGroupDTO>(null as any);
     }
 
-    deleteApiMasterV1GeneralTypeGroupsDelete(generalTypeGroupId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Master/v1/GeneralTypeGroups/Delete/{generalTypeGroupId}";
+    deleteApiMasterV1GeneralTypeGroups(generalTypeGroupId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Master/v1/GeneralTypeGroups/{generalTypeGroupId}";
         if (generalTypeGroupId === undefined || generalTypeGroupId === null)
             throw new globalThis.Error("The parameter 'generalTypeGroupId' must be defined.");
         url_ = url_.replace("{generalTypeGroupId}", encodeURIComponent("" + generalTypeGroupId));
@@ -4737,11 +4782,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiMasterV1GeneralTypeGroupsDelete(_response);
+            return this.processDeleteApiMasterV1GeneralTypeGroups(_response);
         });
     }
 
-    protected processDeleteApiMasterV1GeneralTypeGroupsDelete(response: Response): Promise<void> {
+    protected processDeleteApiMasterV1GeneralTypeGroups(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5035,8 +5080,8 @@ export class Client implements IClient {
         return Promise.resolve<GeneralTypeItemDTO>(null as any);
     }
 
-    deleteApiMasterV1GeneralTypeItemsDelete(generalTypeItemId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Master/v1/GeneralTypeItems/Delete/{generalTypeItemId}";
+    deleteApiMasterV1GeneralTypeItems(generalTypeItemId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Master/v1/GeneralTypeItems/{generalTypeItemId}";
         if (generalTypeItemId === undefined || generalTypeItemId === null)
             throw new globalThis.Error("The parameter 'generalTypeItemId' must be defined.");
         url_ = url_.replace("{generalTypeItemId}", encodeURIComponent("" + generalTypeItemId));
@@ -5049,11 +5094,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiMasterV1GeneralTypeItemsDelete(_response);
+            return this.processDeleteApiMasterV1GeneralTypeItems(_response);
         });
     }
 
-    protected processDeleteApiMasterV1GeneralTypeItemsDelete(response: Response): Promise<void> {
+    protected processDeleteApiMasterV1GeneralTypeItems(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5298,8 +5343,8 @@ export class Client implements IClient {
         return Promise.resolve<NotificationTemplateDTO>(null as any);
     }
 
-    deleteApiMasterV1NotificationTemplatesDelete(notificationTemplateId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Master/v1/NotificationTemplates/Delete/{notificationTemplateId}";
+    deleteApiMasterV1NotificationTemplates(notificationTemplateId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Master/v1/NotificationTemplates/{notificationTemplateId}";
         if (notificationTemplateId === undefined || notificationTemplateId === null)
             throw new globalThis.Error("The parameter 'notificationTemplateId' must be defined.");
         url_ = url_.replace("{notificationTemplateId}", encodeURIComponent("" + notificationTemplateId));
@@ -5312,11 +5357,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiMasterV1NotificationTemplatesDelete(_response);
+            return this.processDeleteApiMasterV1NotificationTemplates(_response);
         });
     }
 
-    protected processDeleteApiMasterV1NotificationTemplatesDelete(response: Response): Promise<void> {
+    protected processDeleteApiMasterV1NotificationTemplates(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5611,6 +5656,43 @@ export class Client implements IClient {
         return Promise.resolve<CultureTranslationDTO>(null as any);
     }
 
+    deleteApiLocalizationsV1(messageKey: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Localizations/v1/{messageKey}";
+        if (messageKey === undefined || messageKey === null)
+            throw new globalThis.Error("The parameter 'messageKey' must be defined.");
+        url_ = url_.replace("{messageKey}", encodeURIComponent("" + messageKey));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteApiLocalizationsV1(_response);
+        });
+    }
+
+    protected processDeleteApiLocalizationsV1(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     getApiLocalizationsV1All2(messageKey: string): Promise<CultureTranslationDTO[]> {
         let url_ = this.baseUrl + "/api/Localizations/v1/{messageKey}/All";
         if (messageKey === undefined || messageKey === null)
@@ -5705,44 +5787,6 @@ export class Client implements IClient {
         return Promise.resolve<CultureTranslationDTO>(null as any);
     }
 
-    deleteApiLocalizationsV1Delete(translationKey: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/Localizations/v1/Delete?";
-        if (translationKey === undefined || translationKey === null)
-            throw new globalThis.Error("The parameter 'translationKey' must be defined and cannot be null.");
-        else
-            url_ += "translationKey=" + encodeURIComponent("" + translationKey) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiLocalizationsV1Delete(_response);
-        });
-    }
-
-    protected processDeleteApiLocalizationsV1Delete(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
     getApiCacheV1(): Promise<CacheSummaryDTO[]> {
         let url_ = this.baseUrl + "/api/Cache/v1";
         url_ = url_.replace(/[?&]$/, "");
@@ -5809,8 +5853,8 @@ export class Client implements IClient {
         return Promise.resolve<boolean>(null as any);
     }
 
-    deleteApiCacheV1Delete(cacheKey: string): Promise<boolean> {
-        let url_ = this.baseUrl + "/api/Cache/v1/delete/{cacheKey}";
+    deleteApiCacheV1(cacheKey: string): Promise<boolean> {
+        let url_ = this.baseUrl + "/api/Cache/v1/{cacheKey}";
         if (cacheKey === undefined || cacheKey === null)
             throw new globalThis.Error("The parameter 'cacheKey' must be defined.");
         url_ = url_.replace("{cacheKey}", encodeURIComponent("" + cacheKey));
@@ -5824,11 +5868,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiCacheV1Delete(_response);
+            return this.processDeleteApiCacheV1(_response);
         });
     }
 
-    protected processDeleteApiCacheV1Delete(response: Response): Promise<boolean> {
+    protected processDeleteApiCacheV1(response: Response): Promise<boolean> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6100,8 +6144,8 @@ export class Client implements IClient {
         return Promise.resolve<PictureDTO>(null as any);
     }
 
-    deleteApiMediaV1PicturesDelete(pictureId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Media/v1/pictures/Delete/{pictureId}";
+    deleteApiMediaV1Pictures(pictureId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Media/v1/pictures/{pictureId}";
         if (pictureId === undefined || pictureId === null)
             throw new globalThis.Error("The parameter 'pictureId' must be defined.");
         url_ = url_.replace("{pictureId}", encodeURIComponent("" + pictureId));
@@ -6114,11 +6158,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiMediaV1PicturesDelete(_response);
+            return this.processDeleteApiMediaV1Pictures(_response);
         });
     }
 
-    protected processDeleteApiMediaV1PicturesDelete(response: Response): Promise<void> {
+    protected processDeleteApiMediaV1Pictures(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6367,8 +6411,8 @@ export class Client implements IClient {
         return Promise.resolve<CompanyEntityAuditDTO>(null as any);
     }
 
-    deleteApiAuditoriesV1CompanyEntityAuditsDelete(companyEntityAuditId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Auditories/v1/CompanyEntityAudits/Delete/{companyEntityAuditId}";
+    deleteApiAuditoriesV1CompanyEntityAudits(companyEntityAuditId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Auditories/v1/CompanyEntityAudits/{companyEntityAuditId}";
         if (companyEntityAuditId === undefined || companyEntityAuditId === null)
             throw new globalThis.Error("The parameter 'companyEntityAuditId' must be defined.");
         url_ = url_.replace("{companyEntityAuditId}", encodeURIComponent("" + companyEntityAuditId));
@@ -6381,11 +6425,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiAuditoriesV1CompanyEntityAuditsDelete(_response);
+            return this.processDeleteApiAuditoriesV1CompanyEntityAudits(_response);
         });
     }
 
-    protected processDeleteApiAuditoriesV1CompanyEntityAuditsDelete(response: Response): Promise<void> {
+    protected processDeleteApiAuditoriesV1CompanyEntityAudits(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6720,8 +6764,8 @@ export class Client implements IClient {
         return Promise.resolve<EntityDTO>(null as any);
     }
 
-    deleteApiAuditoriesV1EntitiesDelete(entityId: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Auditories/v1/Entities/Delete/{entityId}";
+    deleteApiAuditoriesV1Entities(entityId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Auditories/v1/Entities/{entityId}";
         if (entityId === undefined || entityId === null)
             throw new globalThis.Error("The parameter 'entityId' must be defined.");
         url_ = url_.replace("{entityId}", encodeURIComponent("" + entityId));
@@ -6734,11 +6778,11 @@ export class Client implements IClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteApiAuditoriesV1EntitiesDelete(_response);
+            return this.processDeleteApiAuditoriesV1Entities(_response);
         });
     }
 
-    protected processDeleteApiAuditoriesV1EntitiesDelete(response: Response): Promise<void> {
+    protected processDeleteApiAuditoriesV1Entities(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

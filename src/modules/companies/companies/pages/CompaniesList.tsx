@@ -68,13 +68,13 @@ const CompaniesList: React.FC = () => {
   }, [fetchCompanies]);
 
   const handleDelete = async (companyId: number) => {
-    if (!window.confirm(t('CompaniesListPage_DeleteConfirmation'))) {
+    if (!window.confirm(t('Button_DeletePopupConfirmation'))) {
       return;
     }
 
     try {
       setDeletingId(companyId);
-      await apiClient.deleteApiCompaniesV1Delete(companyId);
+      await apiClient.deleteApiCompaniesV1(companyId);
       // Refresh the list after deletion
       await fetchCompanies();
     } catch (err) {
